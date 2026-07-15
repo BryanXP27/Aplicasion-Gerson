@@ -4,75 +4,45 @@ import { z } from 'zod'
 // Schema para login
 export const loginSchema = z.object({
   email: z
-<<<<<<< HEAD
     .string()
-=======
-    .string({ required_error: 'Email es requerido' })
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     .min(1, 'Email es requerido')
     .email('Formato de email inválido')
     .transform(email => email.toLowerCase().trim()),
 
   password: z
-<<<<<<< HEAD
     .string()
-=======
-    .string({ required_error: 'Contraseña es requerida' })
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     .min(1, 'Contraseña es requerida')
 })
 
 // Schema para crear usuario
 export const createUserSchema = z.object({
   nombre: z
-<<<<<<< HEAD
     .string()
-=======
-    .string({ required_error: 'Nombre es requerido' })
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     .min(2, 'Nombre debe tener al menos 2 caracteres')
     .max(50, 'Nombre no puede exceder 50 caracteres')
     .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nombre solo puede contener letras y espacios'),
 
   apellido: z
-<<<<<<< HEAD
     .string()
-=======
-    .string({ required_error: 'Apellido es requerido' })
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     .min(2, 'Apellido debe tener al menos 2 caracteres')
     .max(50, 'Apellido no puede exceder 50 caracteres')
     .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Apellido solo puede contener letras y espacios'),
 
   email: z
-<<<<<<< HEAD
     .string()
-=======
-    .string({ required_error: 'Email es requerido' })
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     .min(1, 'Email es requerido')
     .email('Formato de email inválido')
     .transform(email => email.toLowerCase().trim()),
 
   password: z
-<<<<<<< HEAD
     .string()
-=======
-    .string({ required_error: 'Contraseña es requerida' })
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     .min(8, 'Contraseña debe tener al menos 8 caracteres')
     .max(128, 'Contraseña no puede exceder 128 caracteres')
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
       'Contraseña debe contener al menos una mayúscula, una minúscula y un número'),
 
-<<<<<<< HEAD
   rol: z
     .enum(['Admin', 'Mesero', 'Cocinero', 'Cajero'])
-=======
-  rol: z.enum(['Admin', 'Mesero', 'Cocinero', 'Cajero'], {
-    errorMap: () => ({ message: 'Rol debe ser Admin, Mesero, Cocinero o Cajero' })
-  })
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
 })
 
 // Schema para actualizar usuario (campos opcionales)
@@ -97,15 +67,9 @@ export const updateUserSchema = z.object({
     .transform(email => email.toLowerCase().trim())
     .optional(),
 
-<<<<<<< HEAD
   rol: z
     .enum(['Admin', 'Mesero', 'Cocinero', 'Cajero'])
     .optional()
-=======
-  rol: z.enum(['Admin', 'Mesero', 'Cocinero', 'Cajero'], {
-    errorMap: () => ({ message: 'Rol debe ser Admin, Mesero, Cocinero o Cajero' })
-  }).optional()
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
 }).refine(
   (data) => Object.keys(data).length > 0,
   'Al menos un campo debe ser proporcionado para actualizar'
@@ -129,11 +93,7 @@ export function validateSchema<T>(
 
   // Formatear errores de Zod a un objeto simple
   const errors: Record<string, string> = {}
-<<<<<<< HEAD
   result.error.issues.forEach((error) => {
-=======
-  result.error.errors.forEach((error) => {
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     const path = error.path.join('.')
     errors[path] = error.message
   })

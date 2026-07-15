@@ -9,7 +9,6 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     datasourceUrl: buildDatabaseUrlFromEnv(),
-<<<<<<< HEAD
     // Configuración de conexión mejorada para Neon
     errorFormat: "pretty",
   })
@@ -56,8 +55,3 @@ prisma.$use(async (params, next) => {
     }
   }
 })
-=======
-  })
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e

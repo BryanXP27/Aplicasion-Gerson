@@ -10,7 +10,6 @@ export async function requireAuth(allowedRoles?: string[]) {
     }
   }
 
-<<<<<<< HEAD
   if (allowedRoles) {
     // Normalizar rol del usuario: MAYÚSCULAS -> Capitalizadas
     const userRole = normalizeRole(session.rol)
@@ -21,18 +20,11 @@ export async function requireAuth(allowedRoles?: string[]) {
         error: "No tienes permisos para acceder a este recurso",
         status: 403,
       }
-=======
-  if (allowedRoles && !allowedRoles.includes(session.rol)) {
-    return {
-      error: "No tienes permisos para acceder a este recurso",
-      status: 403,
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     }
   }
 
   return { session }
 }
-<<<<<<< HEAD
 
 // Normaliza roles: 'ADMIN' -> 'Admin', 'admin' -> 'Admin'
 function normalizeRole(role: string): string {
@@ -42,5 +34,3 @@ function normalizeRole(role: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('')
 }
-=======
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
