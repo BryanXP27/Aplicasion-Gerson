@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // JENKINSFILE - Pipeline CI/CD para Pollería Gerson
 
 
@@ -38,6 +39,25 @@ pipeline {
             sh fileExists('package-lock.json') ? "npm ci" : "npm install"
           } else {
             // Comando para sistemas Windows: mostrar versiones
+=======
+pipeline {
+  agent any
+
+  environment {
+    // Next.js build loads API routes that import Prisma; a URL is required at compile time (no live DB needed).
+    DATABASE_URL = "postgresql://build:build@127.0.0.1:5432/build?schema=public"
+    CI = "true"
+  }
+
+  stages {
+    stage("Install") {
+      steps {
+        script {
+          if (isUnix()) {
+            sh "node --version && npm --version"
+            sh fileExists('package-lock.json') ? "npm ci" : "npm install"
+          } else {
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
             bat "node --version && npm --version"
             bat script: fileExists('package-lock.json') ? "npm ci" : "npm install"
           }
@@ -45,6 +65,7 @@ pipeline {
       }
     }
 
+<<<<<<< HEAD
     // ========================================================================
     // ETAPA 2: GENERAR CLIENTE PRISMA
     // ========================================================================
@@ -58,12 +79,21 @@ pipeline {
             sh "npx prisma generate"
           } else {
             // Generar cliente en sistemas Windows
+=======
+    stage("Prisma generate") {
+      steps {
+        script {
+          if (isUnix()) {
+            sh "npx prisma generate"
+          } else {
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
             bat "npx prisma generate"
           }
         }
       }
     }
 
+<<<<<<< HEAD
     // ========================================================================
     // ETAPA 3: COMPILAR APLICACIÓN
     // ========================================================================
@@ -77,6 +107,14 @@ pipeline {
             sh "npm run build"
           } else {
             // Compilar en sistemas Windows
+=======
+    stage("Build") {
+      steps {
+        script {
+          if (isUnix()) {
+            sh "npm run build"
+          } else {
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
             bat "npm run build"
           }
         }
@@ -111,23 +149,31 @@ pipeline {
     stage("Test") {
       steps {
         script {
+<<<<<<< HEAD
           // Variable para almacenar si existe script de tests
           def hasTestScript = false
           
           // Detectar si existe script de tests en package.json para Unix/Linux
+=======
+          def hasTestScript = false
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
           if (isUnix()) {
             hasTestScript = sh(
               script: "node -e \"const p=require('./package.json'); process.exit(p.scripts && p.scripts.test ? 0 : 1)\"",
               returnStatus: true
             ) == 0
           } else {
+<<<<<<< HEAD
             // Detectar si existe script de tests en package.json para Windows
+=======
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
             hasTestScript = bat(
               script: "node -e \"const p=require('./package.json'); process.exit(p.scripts && p.scripts.test ? 0 : 1)\"",
               returnStatus: true
             ) == 0
           }
 
+<<<<<<< HEAD
           // Si existe script de tests, ejecutarlo
           if (hasTestScript) {
             if (isUnix()) {
@@ -139,6 +185,15 @@ pipeline {
             }
           } else {
             // Mostrar mensaje si no existe script de tests
+=======
+          if (hasTestScript) {
+            if (isUnix()) {
+              sh "npm test"
+            } else {
+              bat "npm test"
+            }
+          } else {
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
             echo "No npm test script in package.json — skipping unit tests."
           }
         }
@@ -148,13 +203,19 @@ pipeline {
     stage("Release") {
       steps {
         script {
+<<<<<<< HEAD
           // Crear información del build
+=======
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
           def info = """build=${env.BUILD_NUMBER}
 job=${env.JOB_NAME}
 node=${env.NODE_NAME}
 timestamp=${new Date()}
 """
+<<<<<<< HEAD
           // Escribir información en archivo
+=======
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
           writeFile file: "jenkins-build-info.txt", text: info
           writeFile file: "release/release-ready.txt", text: "Entrega continua lista: build ${env.BUILD_NUMBER}"
           archiveArtifacts artifacts: "jenkins-build-info.txt, release/**", onlyIfSuccessful: true, fingerprint: true
@@ -163,6 +224,7 @@ timestamp=${new Date()}
       }
     }
   }
+<<<<<<< HEAD
   
   // ============================================================================
   // SECCIÓN POST (Ejecuta después de todas las etapas)
@@ -193,3 +255,6 @@ timestamp=${new Date()}
 //
 // El pipeline se detiene si alguna etapa falla.
 // ===============================================================================
+=======
+}
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e

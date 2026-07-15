@@ -58,6 +58,7 @@ export async function GET() {
         where: { fecha_gasto: { gte: inicio, lte: fin } },
       })
 
+<<<<<<< HEAD
       const ingresosNum = Number(ingresosDelMes._sum?.monto || 0)
       const gastosNum = Number(gastosDelMes._sum?.monto || 0)
       
@@ -65,20 +66,36 @@ export async function GET() {
         mes: fecha.toLocaleDateString("es-ES", { month: "short" }),
         ingresos: Number.isFinite(ingresosNum) ? ingresosNum : 0,
         gastos: Number.isFinite(gastosNum) ? gastosNum : 0,
+=======
+      ventasPorMes.push({
+        mes: fecha.toLocaleDateString("es-ES", { month: "short" }),
+        ingresos: Number(ingresosDelMes._sum?.monto || 0),
+        gastos: Number(gastosDelMes._sum?.monto || 0),
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
       })
     }
 
     // Proyección de flujo (próximos 6 meses)
     const proyeccionCaja = []
+<<<<<<< HEAD
     let saldoActual = Number.isFinite(utilidadNeta) ? utilidadNeta : 0
+=======
+    let saldoActual = utilidadNeta
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     for (let i = 1; i <= 6; i++) {
       const fecha = new Date()
       fecha.setMonth(fecha.getMonth() + i)
       saldoActual = saldoActual + (Math.random() * 2000 - 500) // Simulación
+<<<<<<< HEAD
       const saldoNum = Number.isFinite(saldoActual) ? saldoActual : 0
       proyeccionCaja.push({
         mes: fecha.toLocaleDateString("es-ES", { month: "short" }),
         saldo: saldoNum,
+=======
+      proyeccionCaja.push({
+        mes: fecha.toLocaleDateString("es-ES", { month: "short" }),
+        saldo: saldoActual,
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
       })
     }
 
@@ -94,10 +111,17 @@ export async function GET() {
     }
 
     return NextResponse.json({
+<<<<<<< HEAD
       ingresosTotales: Number.isFinite(ingresosTotales) ? ingresosTotales : 0,
       gastosTotales: Number.isFinite(gastosTotales) ? gastosTotales : 0,
       utilidadNeta: Number.isFinite(utilidadNeta) ? utilidadNeta : 0,
       flujoActual: Number.isFinite(utilidadNeta) ? utilidadNeta : 0,
+=======
+      ingresosTotales: Number(ingresosTotales),
+      gastosTotales: Number(gastosTotales),
+      utilidadNeta: Number(utilidadNeta),
+      flujoActual: Number(utilidadNeta),
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
       ventasPorMes,
       proyeccionCaja,
       alertas,

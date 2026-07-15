@@ -1,11 +1,15 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+<<<<<<< HEAD
   roots: ['<rootDir>/__tests__', '<rootDir>/app'],
+=======
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
   testMatch: ['**/?(*.)+(spec|test).[jt]s?(x)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
+<<<<<<< HEAD
   collectCoverageFrom: [
     'app/**/*.{ts,tsx}',
     'lib/**/*.{ts,tsx}',
@@ -32,4 +36,6 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts'],
   testTimeout: 10000,
+=======
+>>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
 };
