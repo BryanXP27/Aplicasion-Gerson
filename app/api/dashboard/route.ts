@@ -31,12 +31,8 @@ export async function GET() {
     const sevenDaysFromNow = new Date(start)
     sevenDaysFromNow.setUTCDate(sevenDaysFromNow.getUTCDate() + 7)
 
-<<<<<<< HEAD
     // Usar Promise.allSettled para manejar fallos parciales de conexión
     const results = await Promise.allSettled([
-=======
-    const [ventas, pedidosActivos, insumosVencer, insumos] = await Promise.all([
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
       prisma.ingresos.aggregate({
         where: {
           categoria: "Ventas",
@@ -73,7 +69,6 @@ export async function GET() {
       }),
     ])
 
-<<<<<<< HEAD
     // Extraer resultados con valores por defecto en caso de error
     const ventasResult = results[0].status === "fulfilled" ? results[0].value : { _sum: { monto: 0 } }
     const pedidosActivosResult = results[1].status === "fulfilled" ? results[1].value : 0
@@ -81,30 +76,20 @@ export async function GET() {
     const insumosResult = results[3].status === "fulfilled" ? results[3].value : []
 
     const insumosBajoStock = (insumosResult as any[]).filter((insumo) => {
-=======
-    const insumosBajoStock = insumos.filter((insumo) => {
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
       const stockActual = Number(insumo.stock_act_insu ?? 0)
       const stockMinimo = Number(insumo.stock_min_insu ?? 0)
       return stockActual <= stockMinimo
     }).length
 
     return NextResponse.json({
-<<<<<<< HEAD
       ventasHoy: Number(ventasResult._sum?.monto ?? 0),
       pedidosActivos: pedidosActivosResult,
       insumosVencer: insumosVencerResult,
-=======
-      ventasHoy: Number(ventas._sum.monto ?? 0),
-      pedidosActivos,
-      insumosVencer,
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
       insumosBajoStock,
       fecha: today,
     })
   } catch (error) {
     console.error("Error obteniendo dashboard:", error)
-<<<<<<< HEAD
     // Retornar valores por defecto en lugar de error para mejor UX
     return NextResponse.json({
       ventasHoy: 0,
@@ -113,8 +98,5 @@ export async function GET() {
       insumosBajoStock: 0,
       fecha: new Date().toISOString().split('T')[0],
     })
-=======
-    return NextResponse.json({ error: "Error al obtener datos del dashboard" }, { status: 500 })
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
   }
 }
