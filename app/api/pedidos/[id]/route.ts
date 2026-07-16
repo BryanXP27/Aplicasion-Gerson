@@ -96,20 +96,15 @@ export async function GET(
 }
 
 // Actualiza el estado de un pedido
-<<<<<<< HEAD
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-=======
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
   // Verifica permisos del usuario
   const auth = await requireAuth(["Admin", "Mesero", "Cocinero", "Cajero"])
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
-<<<<<<< HEAD
  
   try {
     const { id } = await params
@@ -214,27 +209,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       id: pedidoFinal.id_pedido.toString(),
       estado: pedidoFinal.estado_pedido,
       total: nuevoTotal,
-=======
-
-  try {
-    // Extrae el ID del pedido
-    const { id } = await params
-
-    // Obtiene los datos enviados en la petición (nuevo estado)
-    const { estado } = await request.json()
-
-    // Actualiza el estado del pedido en la base de datos
-    const pedido = await prisma.pedidos.update({
-      where: { id_pedido: parseInt(id) },
-      data: { estado_pedido: estado },
-    })
-
-    // Retorna el pedido actualizado
-    return NextResponse.json({
-      id: pedido.id_pedido.toString(),
-      fecha: pedido.fecha_pedido,
-      estado: pedido.estado_pedido,
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     })
   } catch (error) {
     // Manejo de errores al actualizar el pedido
@@ -274,7 +248,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       )
     }
 
-<<<<<<< HEAD
     // Iniciar transacción para asegurar atomicidad en la cancelación
     await prisma.$transaction(async (tx) => {
       // 1. Devolver stock de productos genéricos
@@ -338,40 +311,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         });
       }
     });
-=======
-    // Elimina los detalles asociados al pedido
-    await prisma.detallepedido.deleteMany({
-      where: { id_pedido: pedidoId },
-    })
-
-    // Elimina la información de delivery si existe
-    await (prisma as any).pedidos_delivery.deleteMany({
-      where: { id_pedido: pedidoId },
-    })
-
-    // Cambia el estado del pedido a "Cancelado"
-    await prisma.pedidos.update({
-      where: { id_pedido: pedidoId },
-      data: { estado_pedido: "Cancelado" },
-    })
-
-    // Libera la mesa si el pedido estaba asociado a una mesa física
-    if (pedido.mesas.numero_mesa > 0) {
-      await prisma.mesas.update({
-        where: { id_mesa: pedido.id_mesa },
-        data: { estado_mesa: "Libre" },
-      })
-    }
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
 
     // Retorna confirmación de cancelación
     return NextResponse.json({
       success: true,
-<<<<<<< HEAD
       message: "Pedido cancelado y stock devuelto exitosamente",
-=======
-      message: "Pedido cancelado exitosamente",
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
       id: pedidoId.toString(),
     })
   } catch (error) {
