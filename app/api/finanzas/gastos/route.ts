@@ -2,55 +2,43 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
 
-export async function GET() {
-  const auth = await requireAuth(["Admin", "Cajero"])
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN", "CAJERO"]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
-    const gastos = await (prisma as any).gastos.findMany({
-      orderBy: { fecha_gasto: "desc" },
+    const gastos = await prisma.gastos.findMany({
+      orderBy: {
+        fecha_gasto: "desc",
+      },
     })
-    
-    // Convertir monto a número
-    const gastosFormatted = gastos.map((gasto: any) => ({
-      ...gasto,
-      monto: Number(gasto.monto),
-    }))
-    
-    return NextResponse.json(gastosFormatted)
+    return NextResponse.json(gastos)
   } catch (error) {
-    console.error("Error:", error)
     return NextResponse.json({ error: "Error al obtener gastos" }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(["Admin", "Cajero"])
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN"]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
     const data = await request.json()
-
-    const gasto = await (prisma as any).gastos.create({
-      data: {
-        fecha_gasto: new Date(),
-        monto: data.monto,
-        descripcion: data.descripcion,
-        categoria: data.categoria,
-        proveedor: data.proveedor,
-        metodo_pago: data.metodo_pago,
-        comprobante: data.comprobante,
-        estado: "Registrado",
-      },
+    const newGasto = await prisma.gastos.create({
+      data: { ...data, monto: parseFloat(data.monto) },
     })
-
-    return NextResponse.json(gasto)
+    return NextResponse.json(newGasto)
   } catch (error) {
-    console.error("Error:", error)
     return NextResponse.json({ error: "Error al crear gasto" }, { status: 500 })
   }
 }
