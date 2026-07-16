@@ -128,7 +128,7 @@ model mesas {
 
 model pedidos {
   id_pedido          Int                @id @default(autoincrement())
-  fecha_pedido       DateTime?          @default(now()) @db.Timestamp(6)
+  fecha_pedido       DateTime           @default(now()) @db.Timestamp(6)
   id_user            Int
   id_mesa            Int
   estado_pedido      String?            @default("En preparacion") @db.VarChar(20)
