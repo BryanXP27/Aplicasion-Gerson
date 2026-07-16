@@ -60,3 +60,4 @@ export async function checkRateLimit(identifier: string): Promise<boolean> {
 
 // Alias para compatibilidad
 export const simpleRateLimit = rateLimit
+}
