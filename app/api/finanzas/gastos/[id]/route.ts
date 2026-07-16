@@ -68,14 +68,15 @@ export async function DELETE(
 
   try {
     const { id } = await params
-
-    await (prisma as any).gastos.delete({
+    
+    await prisma.gastos.delete({
       where: { id_gasto: parseInt(id) },
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error:", error)
-    return NextResponse.json({ error: "Error al eliminar gasto" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    return NextResponse.json({ error: "Error al eliminar gasto", details: errorMessage }, { status: 500 })
   }
 }

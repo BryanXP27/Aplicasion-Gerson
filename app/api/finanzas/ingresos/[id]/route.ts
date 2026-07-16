@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/middleware-auth"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -15,8 +15,9 @@ export async function GET(
   }
 
   try {
+    const { id } = await params
     const ingreso = await prisma.ingresos.findUnique({
-      where: { id_ingreso: parseInt(params.id) },
+      where: { id_ingreso: parseInt(id) },
     })
     if (!ingreso) {
       return NextResponse.json({ error: "Ingreso no encontrado" }, { status: 404 })
@@ -30,7 +31,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -41,9 +42,10 @@ export async function PUT(
   }
 
   try {
+    const { id } = await params
     const data = await request.json()
     const updatedIngreso = await prisma.ingresos.update({
-      where: { id_ingreso: parseInt(params.id) },
+      where: { id_ingreso: parseInt(id) },
       data: {
         ...data,
         monto: parseFloat(data.monto),
@@ -58,7 +60,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -69,8 +71,9 @@ export async function DELETE(
   }
 
   try {
+    const { id } = await params
     await prisma.ingresos.delete({
-      where: { id_ingreso: parseInt(params.id) },
+      where: { id_ingreso: parseInt(id) },
     })
     return NextResponse.json({ success: true })
   } catch (error) {
