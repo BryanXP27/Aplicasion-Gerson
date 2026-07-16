@@ -1,6 +1,8 @@
 import { getSession } from "./auth"
 import logger from "./logger"
-import { Rol } from "@prisma/client"
+import { Rol, EstadoPedido } from "@prisma/client"
+
+export { Rol, EstadoPedido }
 
 export async function requireAuth(
   request: { url: string; method: string },

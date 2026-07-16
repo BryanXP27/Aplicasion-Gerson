@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAuth } from "@/lib/middleware-auth"
+import { requireAuth, EstadoPedido } from "@/lib/middleware-auth"
 
 export const dynamic = "force-dynamic"
 
@@ -23,7 +23,7 @@ function getTodayRangeInLima() {
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
-    ["Admin", "Cajero"]
+    ["ADMIN", "CAJERO"]
   )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -39,7 +39,6 @@ export async function GET(request: NextRequest) {
       prisma.ingresos.aggregate({
         where: {
           categoria: "Ventas",
-          estado: "Registrado",
           fecha_ingreso: {
             gte: start,
             lt: end,
@@ -52,7 +51,12 @@ export async function GET(request: NextRequest) {
       prisma.pedidos.count({
         where: {
           estado_pedido: {
-            in: ["En preparacion", "En proceso", "Listo para recoger", "Servido"],
+            in: [
+              EstadoPedido.EN_PREPARACION,
+              EstadoPedido.EN_PROCESO,
+              EstadoPedido.LISTO_PARA_RECOGER,
+              EstadoPedido.SERVIDO,
+            ],
           },
         },
       }),
