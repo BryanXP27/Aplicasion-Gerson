@@ -60,18 +60,18 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      prisma.insumos.count({
+      prisma.productos.count({
         where: {
-          vencimiento_insu: {
+          vencimiento_produc: {
             gte: start,
             lt: sevenDaysFromNow,
           },
         },
       }),
-      prisma.insumos.findMany({
+      prisma.productos.findMany({
         select: {
-          stock_act_insu: true,
-          stock_min_insu: true,
+          stock_produc: true,
+          // No existe stock_min_insu, usaremos un valor fijo o lo agregaremos al modelo
         },
       }),
     ])
@@ -85,8 +85,9 @@ export async function GET(request: NextRequest) {
     const insumosBajoStock = insumosResult.filter((insumo) => {
       // Prisma puede devolver Decimal, nos aseguramos de que sean números
       // y manejamos el caso de que sean null o undefined.
-      const stockActual = Number(insumo.stock_act_insu ?? 0)
-      const stockMinimo = Number(insumo.stock_min_insu ?? 0)
+      const stockActual = Number(insumo.stock_produc ?? 0)
+      // El modelo 'productos' no tiene un stock mínimo, usaremos 10 como umbral.
+      const stockMinimo = 10
       return stockActual <= stockMinimo
     }).length
 
