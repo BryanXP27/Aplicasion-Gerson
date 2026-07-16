@@ -1,109 +1,50 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
+import logger from "@/lib/logger"
 
-export async function GET() {
-  const auth = await requireAuth(["Admin", "Cajero"])
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN", "CAJERO"]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
-    // Obtener datos del mes actual
-    const ahora = new Date()
-    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1)
-    const finMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0)
-
-    // Calcular ingresos
-    const ingresos = await (prisma as any).ingresos.aggregate({
-      _sum: { monto: true },
-      where: {
-        fecha_ingreso: {
-          gte: inicioMes,
-          lte: finMes,
+    const [totalIngresos, totalGastos] = await prisma.$transaction([
+      prisma.ingresos.aggregate({
+        _sum: {
+          monto: true,
         },
-      },
-    })
-
-    // Calcular gastos
-    const gastos = await (prisma as any).gastos.aggregate({
-      _sum: { monto: true },
-      where: {
-        fecha_gasto: {
-          gte: inicioMes,
-          lte: finMes,
+      }),
+      prisma.gastos.aggregate({
+        _sum: {
+          monto: true,
         },
-      },
-    })
+      }),
+    ])
 
-    const ingresosTotales = Number(ingresos._sum?.monto || 0)
-    const gastosTotales = Number(gastos._sum?.monto || 0)
-    const utilidadNeta = ingresosTotales - gastosTotales
+    const ingresos = totalIngresos._sum.monto ?? 0
+    const gastos = totalGastos._sum.monto ?? 0
+    const balance = Number(ingresos) - Number(gastos)
 
-    // Datos para gráficos (últimos 6 meses)
-    const ventasPorMes = []
-    for (let i = 5; i >= 0; i--) {
-      const fecha = new Date()
-      fecha.setMonth(fecha.getMonth() - i)
-      const inicio = new Date(fecha.getFullYear(), fecha.getMonth(), 1)
-      const fin = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0)
-
-      const ingresosDelMes = await (prisma as any).ingresos.aggregate({
-        _sum: { monto: true },
-        where: { fecha_ingreso: { gte: inicio, lte: fin } },
-      })
-
-      const gastosDelMes = await (prisma as any).gastos.aggregate({
-        _sum: { monto: true },
-        where: { fecha_gasto: { gte: inicio, lte: fin } },
-      })
-
-      const ingresosNum = Number(ingresosDelMes._sum?.monto || 0)
-      const gastosNum = Number(gastosDelMes._sum?.monto || 0)
-      
-      ventasPorMes.push({
-        mes: fecha.toLocaleDateString("es-ES", { month: "short" }),
-        ingresos: Number.isFinite(ingresosNum) ? ingresosNum : 0,
-        gastos: Number.isFinite(gastosNum) ? gastosNum : 0,
-      })
+    const data = {
+      totalIngresos: Number(ingresos),
+      totalGastos: Number(gastos),
+      balance,
     }
 
-    // Proyección de flujo (próximos 6 meses)
-    const proyeccionCaja = []
-    let saldoActual = Number.isFinite(utilidadNeta) ? utilidadNeta : 0
-    for (let i = 1; i <= 6; i++) {
-      const fecha = new Date()
-      fecha.setMonth(fecha.getMonth() + i)
-      saldoActual = saldoActual + (Math.random() * 2000 - 500) // Simulación
-      const saldoNum = Number.isFinite(saldoActual) ? saldoActual : 0
-      proyeccionCaja.push({
-        mes: fecha.toLocaleDateString("es-ES", { month: "short" }),
-        saldo: saldoNum,
-      })
-    }
+    logger.info({ action: "get_resumen_finanzas" }, "Resumen de finanzas obtenido exitosamente")
 
-    // Alertas
-    const alertas = []
-    if (gastosTotales > ingresosTotales * 0.8) {
-      alertas.push({
-        id: 1,
-        tipo: "gasto",
-        mensaje: "Los gastos representan más del 80% de los ingresos",
-        urgencia: "alta",
-      })
-    }
-
-    return NextResponse.json({
-      ingresosTotales: Number.isFinite(ingresosTotales) ? ingresosTotales : 0,
-      gastosTotales: Number.isFinite(gastosTotales) ? gastosTotales : 0,
-      utilidadNeta: Number.isFinite(utilidadNeta) ? utilidadNeta : 0,
-      flujoActual: Number.isFinite(utilidadNeta) ? utilidadNeta : 0,
-      ventasPorMes,
-      proyeccionCaja,
-      alertas,
-    })
+    return NextResponse.json(data)
   } catch (error) {
-    console.error("Error:", error)
-    return NextResponse.json({ error: "Error al obtener resumen" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error(
+      { action: "get_resumen_finanzas", error: errorMessage },
+      "Error al obtener el resumen de finanzas"
+    )
+    return NextResponse.json({ error: "Error al obtener el resumen de finanzas" }, { status: 500 })
   }
 }

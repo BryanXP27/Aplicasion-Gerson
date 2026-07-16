@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
+import logger from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(
@@ -19,6 +20,8 @@ export async function GET(request: NextRequest) {
     })
     return NextResponse.json(gastos)
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "get_gastos", error: errorMessage }, "Error al obtener gastos")
     return NextResponse.json({ error: "Error al obtener gastos" }, { status: 500 })
   }
 }
@@ -39,6 +42,8 @@ export async function POST(request: NextRequest) {
     })
     return NextResponse.json(newGasto)
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "create_gasto", error: errorMessage }, "Error al crear gasto")
     return NextResponse.json({ error: "Error al crear gasto" }, { status: 500 })
   }
 }
