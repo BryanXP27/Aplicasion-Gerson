@@ -13,10 +13,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Asumo que quieres obtener todos los presupuestos, similar a gastos o ingresos.
-    // Si el modelo 'presupuestos' no existe, deberás ajustar esta consulta.
-    // Por ahora, devuelvo un array vacío como ejemplo.
-    const presupuestos: any[] = [] // Reemplazar con: await prisma.presupuestos.findMany()
+    // NOTA: El modelo 'presupuestos' no existe en tu schema.prisma.
+    // Deberás crearlo o ajustar esta lógica.
+    // Por ahora, devuelvo un array vacío para que la compilación no falle.
+    const presupuestos: any[] = []
     logger.info({ action: "get_presupuestos", count: presupuestos.length }, "Presupuestos obtenidos")
     return NextResponse.json(presupuestos)
   } catch (error) {
