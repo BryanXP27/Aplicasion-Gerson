@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/middleware-auth"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -15,8 +15,9 @@ export async function GET(
   }
 
   try {
+    const { id } = await params
     const gasto = await prisma.gastos.findUnique({
-      where: { id_gasto: parseInt(params.id) },
+      where: { id_gasto: parseInt(id) },
     })
     if (!gasto) {
       return NextResponse.json({ error: "Gasto no encontrado" }, { status: 404 })
@@ -29,7 +30,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -40,9 +41,10 @@ export async function PUT(
   }
 
   try {
+    const { id } = await params
     const data = await request.json()
     const updatedGasto = await prisma.gastos.update({
-      where: { id_gasto: parseInt(params.id) },
+      where: { id_gasto: parseInt(id) },
       data: {
         ...data,
         monto: parseFloat(data.monto),
