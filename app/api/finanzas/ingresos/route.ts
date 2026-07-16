@@ -39,6 +39,8 @@ export async function POST(request: NextRequest) {
     })
     return NextResponse.json(newIngreso)
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "create_ingreso", error: errorMessage }, "Error al crear ingreso")
     return NextResponse.json({ error: "Error al crear ingreso" }, { status: 500 })
   }
 }
