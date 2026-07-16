@@ -1,9 +1,17 @@
 import { getSession } from "./auth"
+import logger from "./logger"
 
-export async function requireAuth(allowedRoles?: string[]) {
+export async function requireAuth(
+  request: { url: string; method: string },
+  allowedRoles?: string[]
+) {
   const session = await getSession()
 
   if (!session) {
+    logger.warn(
+      { action: "requireAuth", path: request.url, method: request.method },
+      "Acceso no autorizado: No hay sesión"
+    )
     return {
       error: "No autorizado",
       status: 401,
@@ -16,6 +24,16 @@ export async function requireAuth(allowedRoles?: string[]) {
     const normalizedAllowedRoles = allowedRoles.map(normalizeRole)
 
     if (!normalizedAllowedRoles.includes(userRole)) {
+      logger.error(
+        {
+          action: "requireAuth",
+          userId: session.id,
+          userRole: session.rol,
+          requiredRoles: allowedRoles,
+          path: request.url,
+        },
+        "Acceso prohibido: Rol no permitido"
+      )
       return {
         error: "No tienes permisos para acceder a este recurso",
         status: 403,
