@@ -1,9 +1,10 @@
 import { getSession } from "./auth"
 import logger from "./logger"
+import { Rol } from "@prisma/client"
 
 export async function requireAuth(
   request: { url: string; method: string },
-  allowedRoles?: string[]
+  allowedRoles?: Rol[]
 ) {
   const session = await getSession()
 
@@ -19,11 +20,7 @@ export async function requireAuth(
   }
 
   if (allowedRoles) {
-    // Normalizar rol del usuario: MAYÚSCULAS -> Capitalizadas
-    const userRole = normalizeRole(session.rol)
-    const normalizedAllowedRoles = allowedRoles.map(normalizeRole)
-
-    if (!normalizedAllowedRoles.includes(userRole)) {
+    if (!allowedRoles.includes(session.rol as Rol)) {
       logger.error(
         {
           action: "requireAuth",
@@ -42,13 +39,4 @@ export async function requireAuth(
   }
 
   return { session }
-}
-
-// Normaliza roles: 'ADMIN' -> 'Admin', 'admin' -> 'Admin'
-function normalizeRole(role: string): string {
-  return role
-    .toLowerCase()
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('')
 }

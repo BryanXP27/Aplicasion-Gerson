@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
 
@@ -20,8 +20,11 @@ function getTodayRangeInLima() {
   return { start, end, today }
 }
 
-export async function GET() {
-  const auth = await requireAuth(["Admin", "Cajero"])
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["Admin", "Cajero"]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
@@ -75,7 +78,9 @@ export async function GET() {
     const insumosVencerResult = results[2].status === "fulfilled" ? results[2].value : 0
     const insumosResult = results[3].status === "fulfilled" ? results[3].value : []
 
-    const insumosBajoStock = (insumosResult as any[]).filter((insumo) => {
+    const insumosBajoStock = insumosResult.filter((insumo) => {
+      // Prisma puede devolver Decimal, nos aseguramos de que sean números
+      // y manejamos el caso de que sean null o undefined.
       const stockActual = Number(insumo.stock_act_insu ?? 0)
       const stockMinimo = Number(insumo.stock_min_insu ?? 0)
       return stockActual <= stockMinimo
