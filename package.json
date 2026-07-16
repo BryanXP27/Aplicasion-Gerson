@@ -81,7 +81,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 3000",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "test": "jest",
@@ -92,7 +92,8 @@
     "db:studio": "prisma studio",
     "db:test": "tsx scripts/test-db.ts",
     "auth:force-user": "tsx scripts/force-login-user.ts",
-    "clean": "rm -rf .next node_modules"
+    "clean": "rm -rf .next node_modules",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
