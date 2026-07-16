@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Rol, EstadoMesa } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -22,7 +22,7 @@ async function main() {
       correo_user: 'admin@gerson.com',
       dni_user: '12345678',
       telefono_user: '0987654321',
-      rol: 'Admin',
+      rol: Rol.ADMIN,
       password: 'Admin123!',
     },
     {
@@ -31,7 +31,7 @@ async function main() {
       correo_user: 'mesero@gerson.com',
       dni_user: '87654321',
       telefono_user: '0912345678',
-      rol: 'Mesero',
+      rol: Rol.MESERO,
       password: 'Mesero123!',
     },
     {
@@ -40,7 +40,7 @@ async function main() {
       correo_user: 'cocinero@gerson.com',
       dni_user: '11111111',
       telefono_user: '0911111111',
-      rol: 'Cocinero',
+      rol: Rol.COCINERO,
       password: 'Cocinero123!',
     },
     {
@@ -49,7 +49,7 @@ async function main() {
       correo_user: 'cajero@gerson.com',
       dni_user: '22222222',
       telefono_user: '0922222222',
-      rol: 'Cajero',
+      rol: Rol.CAJERO,
       password: 'Cajero123!',
     },
   ]
@@ -84,7 +84,7 @@ async function main() {
       data: {
         numero_mesa: i,
         capacidad_mesa: 4,
-        estado_mesa: 'Libre',
+        estado_mesa: EstadoMesa.LIBRE,
       },
     })
     console.log(`✓ Mesa ${mesa.numero_mesa} creada (capacidad: ${mesa.capacidad_mesa})`)
