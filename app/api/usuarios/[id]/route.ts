@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
+import logger from "@/lib/logger"
 
 export async function GET(
   request: NextRequest,
@@ -25,8 +26,9 @@ export async function GET(
     const { contrasena, ...userWithoutPassword } = usuario
     return NextResponse.json(userWithoutPassword)
   } catch (error) {
-    console.error("Error:", error)
-    return NextResponse.json({ error: "Error al obtener usuario" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "get_usuario_by_id", error: errorMessage, id: params.id }, "Error al obtener usuario")
+    return NextResponse.json({ error: "Error al obtener el usuario" }, { status: 500 })
   }
 }
 
@@ -55,8 +57,9 @@ export async function PUT(
     const { contrasena, ...userWithoutPassword } = updatedUsuario
     return NextResponse.json(userWithoutPassword)
   } catch (error) {
-    console.error("Error:", error)
-    return NextResponse.json({ error: "Error al actualizar usuario" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "update_usuario", error: errorMessage, id: params.id }, "Error al actualizar usuario")
+    return NextResponse.json({ error: "Error al actualizar el usuario" }, { status: 500 })
   }
 }
 
@@ -79,7 +82,8 @@ export async function DELETE(
     })
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error:", error)
-    return NextResponse.json({ error: "Error al eliminar usuario" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "delete_usuario", error: errorMessage, id: params.id }, "Error al eliminar usuario")
+    return NextResponse.json({ error: "Error al eliminar el usuario" }, { status: 500 })
   }
 }

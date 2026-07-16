@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
+import logger from "@/lib/logger"
 
 export async function GET(
   request: NextRequest,
@@ -24,7 +25,9 @@ export async function GET(
     }
     return NextResponse.json(gasto)
   } catch (error) {
-    return NextResponse.json({ error: "Error al obtener gasto" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "get_gasto_by_id", error: errorMessage, id: params.id }, "Error al obtener gasto")
+    return NextResponse.json({ error: "Error al obtener el gasto" }, { status: 500 })
   }
 }
 
@@ -52,7 +55,9 @@ export async function PUT(
     })
     return NextResponse.json(updatedGasto)
   } catch (error) {
-    return NextResponse.json({ error: "Error al actualizar gasto" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "update_gasto", error: errorMessage, id: params.id }, "Error al actualizar gasto")
+    return NextResponse.json({ error: "Error al actualizar el gasto" }, { status: 500 })
   }
 }
 
@@ -77,8 +82,8 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error:", error)
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    return NextResponse.json({ error: "Error al eliminar gasto", details: errorMessage }, { status: 500 })
+    logger.error({ action: "delete_gasto", error: errorMessage, id: params.id }, "Error al eliminar gasto")
+    return NextResponse.json({ error: "Error al eliminar el gasto" }, { status: 500 })
   }
 }
