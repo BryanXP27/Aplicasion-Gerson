@@ -1,12 +1,15 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAuth(["Admin"])
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN"]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }

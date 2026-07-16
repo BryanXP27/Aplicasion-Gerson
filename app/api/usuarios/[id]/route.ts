@@ -1,93 +1,82 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { hashPassword } from "@/lib/auth"
 import { requireAuth } from "@/lib/middleware-auth"
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAuth(["Admin"])
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN"]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
-    const { id } = await params
-    const { nombre, email, password, rol } = await request.json()
-
-    console.log("PUT /api/usuarios/[id] - Datos recibidos:", { id, nombre, email, rol })
-
-    if (!nombre || !email || !rol) {
-      return NextResponse.json({ error: "Campos requeridos: nombre, email, rol" }, { status: 400 })
-    }
-
-    // Verificar si el email ya existe en otro usuario
-    const existingUser = await prisma.usuarios.findUnique({
-      where: { correo_user: email },
+    const usuario = await prisma.usuarios.findUnique({
+      where: { id_user: parseInt(params.id) },
     })
-
-    if (existingUser && existingUser.id_user !== parseInt(id)) {
-      return NextResponse.json({ error: "El email ya está registrado" }, { status: 400 })
+    if (!usuario) {
+      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
     }
-
-    const updateData: any = {
-      correo_user: email,
-      rol: rol,
-    }
-
-    // Separar nombre completo en nombre y apellido
-    const nameParts = nombre.trim().split(' ')
-    if (nameParts.length >= 2) {
-      updateData.nombre_user = nameParts[0]
-      updateData.apellido_user = nameParts.slice(1).join(' ')
-    } else {
-      updateData.nombre_user = nombre.trim()
-      updateData.apellido_user = nombre.trim()
-    }
-
-    if (password && password.trim()) {
-      updateData.contrasena = await hashPassword(password)
-    }
-
-    console.log("PUT /api/usuarios/[id] - Datos a actualizar:", updateData)
-
-    const usuario = await prisma.usuarios.update({
-      where: { id_user: parseInt(id) },
-      data: updateData,
-    })
-
-    console.log("PUT /api/usuarios/[id] - Usuario actualizado exitosamente")
-
-    return NextResponse.json({
-      id: usuario.id_user.toString(),
-      nombre: `${usuario.nombre_user} ${usuario.apellido_user}`,
-      email: usuario.correo_user,
-      rol: usuario.rol,
-      activo: true,
-    })
+    const { contrasena, ...userWithoutPassword } = usuario
+    return NextResponse.json(userWithoutPassword)
   } catch (error) {
-    console.error("Error actualizando usuario:", error)
-    return NextResponse.json({ 
-      error: "Error al actualizar usuario",
-      details: error instanceof Error ? error.message : "Error desconocido"
-    }, { status: 500 })
+    console.error("Error:", error)
+    return NextResponse.json({ error: "Error al obtener usuario" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAuth(["Admin"])
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN"]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
-    const { id } = await params
+    const data = await request.json()
+    // Asegurarse de no actualizar la contraseña aquí
+    delete data.contrasena
 
-    await prisma.usuarios.delete({
-      where: { id_user: parseInt(id) },
+    const updatedUsuario = await prisma.usuarios.update({
+      where: { id_user: parseInt(params.id) },
+      data,
     })
+    const { contrasena, ...userWithoutPassword } = updatedUsuario
+    return NextResponse.json(userWithoutPassword)
+  } catch (error) {
+    console.error("Error:", error)
+    return NextResponse.json({ error: "Error al actualizar usuario" }, { status: 500 })
+  }
+}
 
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN"]
+  )
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status })
+  }
+
+  try {
+    await prisma.usuarios.delete({
+      where: { id_user: parseInt(params.id) },
+    })
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error eliminando usuario:", error)
+    console.error("Error:", error)
     return NextResponse.json({ error: "Error al eliminar usuario" }, { status: 500 })
   }
 }

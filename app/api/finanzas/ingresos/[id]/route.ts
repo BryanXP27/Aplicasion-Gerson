@@ -1,23 +1,77 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  const auth = await requireAuth(["Admin"])
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN"]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
-    const { id } = await params
-
-    await (prisma as any).ingresos.delete({
-      where: { id_ingreso: parseInt(id) },
+    const ingreso = await prisma.ingresos.findUnique({
+      where: { id_ingreso: parseInt(params.id) },
     })
+    if (!ingreso) {
+      return NextResponse.json({ error: "Ingreso no encontrado" }, { status: 404 })
+    }
+    return NextResponse.json(ingreso)
+  } catch (error) {
+    console.error("Error:", error)
+    return NextResponse.json({ error: "Error al obtener ingreso" }, { status: 500 })
+  }
+}
 
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN"]
+  )
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status })
+  }
+
+  try {
+    const data = await request.json()
+    const updatedIngreso = await prisma.ingresos.update({
+      where: { id_ingreso: parseInt(params.id) },
+      data: {
+        ...data,
+        monto: parseFloat(data.monto),
+      },
+    })
+    return NextResponse.json(updatedIngreso)
+  } catch (error) {
+    console.error("Error:", error)
+    return NextResponse.json({ error: "Error al actualizar ingreso" }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    ["ADMIN"]
+  )
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status })
+  }
+
+  try {
+    await prisma.ingresos.delete({
+      where: { id_ingreso: parseInt(params.id) },
+    })
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error:", error)
