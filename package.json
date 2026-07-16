@@ -91,7 +91,8 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "db:test": "tsx scripts/test-db.ts",
-    "auth:force-user": "tsx scripts/force-login-user.ts"
+    "auth:force-user": "tsx scripts/force-login-user.ts",
+    "clean": "rm -rf .next node_modules"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

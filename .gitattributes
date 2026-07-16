@@ -1,2 +1,3 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Forzar a Git a usar siempre finales de línea LF (Unix)
+# Esto previene las advertencias de CRLF en Windows y estandariza el proyecto.
+* text=auto eol=lf
