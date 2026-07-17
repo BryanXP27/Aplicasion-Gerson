@@ -32,9 +32,10 @@ export async function POST(request: NextRequest) {
     }
 
     const token = await createToken({
-      id: usuario.id_user,
+      id: String(usuario.id_user), // Convertido a string
       rol: usuario.rol,
       nombre: `${usuario.nombre_user} ${usuario.apellido_user}`,
+      email: usuario.correo_user || "", // Añadido el email
     })
 
     const response = NextResponse.json({ success: true, token })
