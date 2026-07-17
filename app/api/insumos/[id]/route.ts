@@ -5,7 +5,7 @@ import logger from "@/lib/logger"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -16,10 +16,8 @@ export async function GET(
   }
 
   try {
-    // Se desestructura el id directamente de la promesa de parámetros
-    const { id } = await params;
     const producto = await prisma.productos.findUnique({
-      where: { id_produc: parseInt(id) },
+      where: { id_produc: parseInt(params.id) },
     })
     if (!producto) {
       return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
@@ -27,16 +25,14 @@ export async function GET(
     return NextResponse.json(producto)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    // Se espera la resolución de la promesa 'params' para acceder a 'id'
-    const id = (await params).id
-    logger.error({ action: "get_insumo_by_id", error: errorMessage, id }, "Error al obtener insumo")
+    logger.error({ action: "get_insumo_by_id", error: errorMessage, id: params.id }, "Error al obtener insumo")
     return NextResponse.json({ error: "Error al obtener el insumo" }, { status: 500 })
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -47,25 +43,22 @@ export async function PUT(
   }
 
   try {
-    // Se desestructura el id directamente de la promesa de parámetros
-    const { id } = await params;
     const data = await request.json()
     const updatedProducto = await prisma.productos.update({
-      where: { id_produc: parseInt(id) },
+      where: { id_produc: parseInt(params.id) },
       data: data,
     })
     return NextResponse.json(updatedProducto)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    const id = (await params).id
-    logger.error({ action: "update_insumo", error: errorMessage, id }, "Error al actualizar insumo")
+    logger.error({ action: "update_insumo", error: errorMessage, id: params.id }, "Error al actualizar insumo")
     return NextResponse.json({ error: "Error al actualizar el insumo" }, { status: 500 })
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -76,16 +69,13 @@ export async function DELETE(
   }
 
   try {
-    // Se desestructura el id directamente de la promesa de parámetros
-    const { id } = await params;
     await prisma.productos.delete({
-      where: { id_produc: parseInt(id) },
+      where: { id_produc: parseInt(params.id) },
     })
     return NextResponse.json({ success: true })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    const id = (await params).id
-    logger.error({ action: "delete_insumo", error: errorMessage, id }, "Error al eliminar insumo")
+    logger.error({ action: "delete_insumo", error: errorMessage, id: params.id }, "Error al eliminar insumo")
     return NextResponse.json({ error: "Error al eliminar el insumo" }, { status: 500 })
   }
 }
