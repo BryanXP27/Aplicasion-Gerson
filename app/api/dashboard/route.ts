@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
       pedidosActivos: 0,
       insumosVencer: 0,
       insumosBajoStock: 0,
-      fecha: new Date().toISOString().split('T')[0],
+      fecha: getTodayRangeInLima().today,
     })
   }
 }
