@@ -5,7 +5,7 @@ import logger from "@/lib/logger"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } } // Estandarizar a no-Promise
+  { params }: { params: { id: string } }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -32,7 +32,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } } // Estandarizar a no-Promise
+  { params }: { params: { id: string } }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -58,7 +58,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } } // Estandarizar a no-Promise
+  { params }: { params: { id: string } }
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
