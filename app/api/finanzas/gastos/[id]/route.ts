@@ -25,8 +25,9 @@ export async function GET(
     return NextResponse.json(gasto)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    const id = params.id; // Acceso directo en el catch
     logger.error(
-      { action: "get_gasto_by_id", error: errorMessage, id: params.id },
+      { action: "get_gasto_by_id", error: errorMessage, id: id },
       "Error al obtener gasto"
     )
     return NextResponse.json({ error: "Error al obtener el gasto" }, { status: 500 })
@@ -54,8 +55,9 @@ export async function PUT(
     return NextResponse.json(updatedGasto)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    const id = params.id; // Acceso directo en el catch
     logger.error(
-      { action: "update_gasto", error: errorMessage, id: params.id },
+      { action: "update_gasto", error: errorMessage, id: id },
       "Error al actualizar gasto"
     )
     return NextResponse.json({ error: "Error al actualizar el gasto" }, { status: 500 })
@@ -81,7 +83,8 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "delete_gasto", error: errorMessage, id: params.id }, "Error al eliminar gasto")
+    const id = params.id; // Acceso directo en el catch
+    logger.error({ action: "delete_gasto", error: errorMessage, id: id }, "Error al eliminar gasto")
     return NextResponse.json({ error: "Error al eliminar el gasto" }, { status: 500 })
   }
 }
