@@ -5,7 +5,7 @@ import logger from "@/lib/logger"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } } // La firma es correcta, pero el error indica un problema de inferencia de tipos en el build.
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -35,7 +35,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } } // La firma es correcta.
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
@@ -64,7 +64,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } } // La firma es correcta.
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
