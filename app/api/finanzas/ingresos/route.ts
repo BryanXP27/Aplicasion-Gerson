@@ -20,7 +20,9 @@ export async function GET(request: NextRequest) {
     })
     return NextResponse.json(ingresos)
   } catch (error) {
-    return NextResponse.json({ error: "Error al obtener ingresos" }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "get_ingresos", error: errorMessage }, "Error al obtener ingresos")
+    return NextResponse.json({ error: "Error al obtener los ingresos" }, { status: 500 })
   }
 }
 

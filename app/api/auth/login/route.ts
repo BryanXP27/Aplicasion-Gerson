@@ -1,45 +1,22 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { verifyPassword, createToken } from "@/lib/auth"
+import bcrypt from "bcryptjs"
+import { SignJWT } from "jose"
+import { getJwtSecretKey } from "@/lib/auth"
+import logger from "@/lib/logger"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
-    const normalizedEmail = String(email || "").trim().toLowerCase()
-    const normalizedPassword = String(password || "")
+    const { correo_user, contrasena } = await request.json()
 
-    if (!normalizedEmail || !normalizedPassword) {
-      return NextResponse.json({ error: "Email y contraseña son requeridos" }, { status: 400 })
+    if (!correo_user || !contrasena) {
+      return NextResponse.json(
+        { error: "El correo y la contraseña son requeridos" },
+        { status: 400 }
+      )
     }
 
-    if (normalizedEmail === "rescate@gerson.com" && normalizedPassword === "Rescate123!") {
-      const token = await createToken({
-        id: "4",
-        nombre: "Usuario Rescate",
-        email: "rescate@gerson.com",
-        rol: "Admin",
-      })
-
-      const response = NextResponse.json({
-        success: true,
-        usuario: {
-          id: 4,
-          nombre: "Usuario Rescate",
-          email: "rescate@gerson.com",
-          rol: "Admin",
-        },
-      })
-
-      response.cookies.set("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24,
-        path: "/",
-      })
-
-      return response
-    }
+    const normalizedEmail = correo_user.toLowerCase()
 
     const usuario = await prisma.usuarios.findUnique({
       where: { correo_user: normalizedEmail },
@@ -49,40 +26,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 })
     }
 
-    const isValid = await verifyPassword(normalizedPassword, usuario.contrasena)
+    const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena)
 
-    if (!isValid) {
+    if (!contrasenaValida) {
       return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 })
     }
 
-    const token = await createToken({
-      id: usuario.id_user.toString(),
-      nombre: `${usuario.nombre_user} ${usuario.apellido_user}`,
-      email: usuario.correo_user || '',
+    const token = await new SignJWT({
+      id: usuario.id_user,
       rol: usuario.rol,
+      nombre: `${usuario.nombre_user} ${usuario.apellido_user}`,
     })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("1d")
+      .sign(getJwtSecretKey())
 
-    const response = NextResponse.json({
-      success: true,
-      usuario: {
-        id: usuario.id_user,
-        nombre: `${usuario.nombre_user} ${usuario.apellido_user}`,
-        email: usuario.correo_user,
-        rol: usuario.rol,
-      },
-    })
-
+    const response = NextResponse.json({ success: true, token })
     response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24,
+      sameSite: "strict",
       path: "/",
     })
 
     return response
   } catch (error) {
-    console.error("Error en login:", error)
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    logger.error({ action: "login", error: errorMessage }, "Error en el inicio de sesión")
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
