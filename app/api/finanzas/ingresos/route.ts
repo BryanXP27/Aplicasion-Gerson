@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAuth } from "@/lib/middleware-auth"
+import { requireAuth, Rol } from "@/lib/middleware-auth"
 import logger from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
-    ["ADMIN", "CAJERO"]
+    [Rol.ADMIN, Rol.CAJERO]
   )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
-    ["ADMIN"]
+    [Rol.ADMIN]
   )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })

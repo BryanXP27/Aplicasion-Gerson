@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
-import { SignJWT } from "jose"
-import { getJwtSecretKey } from "@/lib/auth"
+import { createToken } from "@/lib/auth"
 import logger from "@/lib/logger"
 
 export async function POST(request: NextRequest) {
@@ -32,15 +31,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 })
     }
 
-    const token = await new SignJWT({
+    const token = await createToken({
       id: usuario.id_user,
       rol: usuario.rol,
       nombre: `${usuario.nombre_user} ${usuario.apellido_user}`,
     })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("1d")
-      .sign(getJwtSecretKey())
 
     const response = NextResponse.json({ success: true, token })
     response.cookies.set("token", token, {

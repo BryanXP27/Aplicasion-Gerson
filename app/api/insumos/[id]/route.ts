@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAuth } from "@/lib/middleware-auth"
+import { requireAuth, Rol } from "@/lib/middleware-auth"
 import logger from "@/lib/logger"
 
 export async function GET(
@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
-    ["ADMIN", "COCINERO", "CAJERO"]
+    [Rol.ADMIN, Rol.COCINERO, Rol.CAJERO]
   )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -37,7 +37,7 @@ export async function PUT(
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
-    ["ADMIN"]
+    [Rol.ADMIN]
   )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -64,7 +64,7 @@ export async function DELETE(
 ) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
-    ["ADMIN"]
+    [Rol.ADMIN]
   )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
