@@ -26,7 +26,8 @@ export async function GET(
     return NextResponse.json(producto)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    const id = (await params)?.id ?? "unknown"
+    // Se espera la resolución de la promesa 'params' para acceder a 'id'
+    const id = (await params).id
     logger.error({ action: "get_insumo_by_id", error: errorMessage, id }, "Error al obtener insumo")
     return NextResponse.json({ error: "Error al obtener el insumo" }, { status: 500 })
   }
@@ -54,7 +55,8 @@ export async function PUT(
     return NextResponse.json(updatedProducto)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    const id = (await params)?.id ?? "unknown"
+    // Se espera la resolución de la promesa 'params' para acceder a 'id'
+    const id = (await params).id
     logger.error({ action: "update_insumo", error: errorMessage, id }, "Error al actualizar insumo")
     return NextResponse.json({ error: "Error al actualizar el insumo" }, { status: 500 })
   }
@@ -80,7 +82,8 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    const id = (await params)?.id ?? "unknown"
+    // Se espera la resolución de la promesa 'params' para acceder a 'id'
+    const id = (await params).id
     logger.error({ action: "delete_insumo", error: errorMessage, id }, "Error al eliminar insumo")
     return NextResponse.json({ error: "Error al eliminar el insumo" }, { status: 500 })
   }
