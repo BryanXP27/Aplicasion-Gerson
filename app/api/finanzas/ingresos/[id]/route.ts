@@ -1,87 +1,26 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
-import logger from "@/lib/logger"
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const auth = await requireAuth(
-    { url: request.url, method: request.method },
-    ["ADMIN"]
-  )
-  if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status })
-  }
-
-  try {
-    const { id } = await params
-    const ingreso = await prisma.ingresos.findUnique({
-      where: { id_ingreso: parseInt(id) },
-    })
-    if (!ingreso) {
-      return NextResponse.json({ error: "Ingreso no encontrado" }, { status: 404 })
-    }
-    return NextResponse.json(ingreso)
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "get_ingreso_by_id", error: errorMessage, id: params.id }, "Error al obtener ingreso")
-    return NextResponse.json({ error: "Error al obtener el ingreso" }, { status: 500 })
-  }
-}
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const auth = await requireAuth(
-    { url: request.url, method: request.method },
-    ["ADMIN"]
-  )
-  if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status })
-  }
-
-  try {
-    const { id } = await params
-    const data = await request.json()
-    const updatedIngreso = await prisma.ingresos.update({
-      where: { id_ingreso: parseInt(id) },
-      data: {
-        ...data,
-        monto: parseFloat(data.monto),
-      },
-    })
-    return NextResponse.json(updatedIngreso)
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "update_ingreso", error: errorMessage, id: params.id }, "Error al actualizar ingreso")
-    return NextResponse.json({ error: "Error al actualizar el ingreso" }, { status: 500 })
-  }
-}
 
 export async function DELETE(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAuth(
-    { url: request.url, method: request.method },
-    ["ADMIN"]
-  )
+  const auth = await requireAuth(["Admin"])
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
     const { id } = await params
-    await prisma.ingresos.delete({
+
+    await (prisma as any).ingresos.delete({
       where: { id_ingreso: parseInt(id) },
     })
+
     return NextResponse.json({ success: true })
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "delete_ingreso", error: errorMessage, id: params.id }, "Error al eliminar ingreso")
-    return NextResponse.json({ error: "Error al eliminar el ingreso" }, { status: 500 })
+    console.error("Error:", error)
+    return NextResponse.json({ error: "Error al eliminar ingreso" }, { status: 500 })
   }
 }

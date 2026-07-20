@@ -1,9 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAuth } from "@/lib/middleware-auth"
+import { requireAuth, Rol, EstadoMesa } from "@/lib/middleware-auth"
 
-export async function GET() {
-  const auth = await requireAuth(["Admin", "Mesero"])
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    [Rol.ADMIN, Rol.MESERO, Rol.CAJERO, Rol.COCINERO]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
@@ -13,10 +16,9 @@ export async function GET() {
       orderBy: { numero_mesa: "asc" },
     })
 
-    // Mapear a la estructura esperada por el frontend, excluyendo mesas ficticias
     const mesas = mesasRaw
-      .filter((mesa: any) => mesa.numero_mesa > 0) // Excluir mesas ficticias (-1, -2)
-      .map((mesa: any) => ({
+      .filter((mesa) => mesa.numero_mesa > 0)
+      .map((mesa) => ({
         id: mesa.id_mesa.toString(),
         numero: mesa.numero_mesa,
         capacidad: mesa.capacidad_mesa,
@@ -31,21 +33,22 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(["Admin"])
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    [Rol.ADMIN]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
-    const { numero, capacidad, estado } = await request.json()
+    const { numero, capacidad } = await request.json()
 
     if (!numero || !capacidad) {
       return NextResponse.json({ error: "Número y capacidad son requeridos" }, { status: 400 })
     }
 
-    const existingMesa = await prisma.mesas.findUnique({
-      where: { numero_mesa: numero },
-    })
+    const existingMesa = await prisma.mesas.findUnique({ where: { numero_mesa: numero } })
 
     if (existingMesa) {
       return NextResponse.json({ error: "Ya existe una mesa con ese número" }, { status: 400 })
@@ -55,7 +58,7 @@ export async function POST(request: NextRequest) {
       data: {
         numero_mesa: numero,
         capacidad_mesa: capacidad,
-        estado_mesa: estado || "Libre",
+        estado_mesa: EstadoMesa.LIBRE,
       },
     })
 
@@ -70,5 +73,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Error al crear mesa" }, { status: 500 })
   }
 }
-
-

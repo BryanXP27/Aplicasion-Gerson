@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAuth, EstadoPedido, Rol } from "@/lib/middleware-auth"
-import logger from "@/lib/logger"
+import { requireAuth } from "@/lib/middleware-auth"
 
 export const dynamic = "force-dynamic"
 
@@ -21,11 +20,8 @@ function getTodayRangeInLima() {
   return { start, end, today }
 }
 
-export async function GET(request: NextRequest) {
-  const auth = await requireAuth(
-    { url: request.url, method: request.method },
-    [Rol.ADMIN, Rol.CAJERO]
-  )
+export async function GET() {
+  const auth = await requireAuth(["Admin", "Cajero"])
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
@@ -40,6 +36,7 @@ export async function GET(request: NextRequest) {
       prisma.ingresos.aggregate({
         where: {
           categoria: "Ventas",
+          estado: "Registrado",
           fecha_ingreso: {
             gte: start,
             lt: end,
@@ -52,58 +49,54 @@ export async function GET(request: NextRequest) {
       prisma.pedidos.count({
         where: {
           estado_pedido: {
-            in: [
-              EstadoPedido.EN_PREPARACION,
-              EstadoPedido.EN_PROCESO,
-              EstadoPedido.LISTO_PARA_RECOGER,
-              EstadoPedido.SERVIDO,
-            ],
+            in: ["En preparacion", "En proceso", "Listo para recoger", "Servido"],
           },
         },
       }),
-      prisma.productos.count({
+      prisma.insumos.count({
         where: {
-          vencimiento_produc: {
+          vencimiento_insu: {
             gte: start,
             lt: sevenDaysFromNow,
           },
         },
       }),
-      // Consulta optimizada: Contar directamente en la base de datos
-      prisma.productos.count({
-        where: {
-          // Asumimos un umbral de stock bajo de 10.
-          // Idealmente, esto debería ser una columna en el modelo `productos`.
-          stock_produc: {
-            lte: 10,
-          },
-          controlar_stock: true,
+      prisma.insumos.findMany({
+        select: {
+          stock_act_insu: true,
+          stock_min_insu: true,
         },
       }),
     ])
 
     // Extraer resultados con valores por defecto en caso de error
     const ventasResult = results[0].status === "fulfilled" ? results[0].value : { _sum: { monto: 0 } }
-    const pedidosActivosResult = results[1].status === "fulfilled" ? results[1].value : 0;
-    const insumosVencerResult = results[2].status === "fulfilled" ? results[2].value : 0;
-    const insumosBajoStockResult = results[3].status === "fulfilled" ? results[3].value : 0;
+    const pedidosActivosResult = results[1].status === "fulfilled" ? results[1].value : 0
+    const insumosVencerResult = results[2].status === "fulfilled" ? results[2].value : 0
+    const insumosResult = results[3].status === "fulfilled" ? results[3].value : []
+
+    const insumosBajoStock = (insumosResult as any[]).filter((insumo) => {
+      const stockActual = Number(insumo.stock_act_insu ?? 0)
+      const stockMinimo = Number(insumo.stock_min_insu ?? 0)
+      return stockActual <= stockMinimo
+    }).length
 
     return NextResponse.json({
       ventasHoy: Number(ventasResult._sum?.monto ?? 0),
       pedidosActivos: pedidosActivosResult,
       insumosVencer: insumosVencerResult,
-      insumosBajoStock: insumosBajoStockResult,
+      insumosBajoStock,
       fecha: today,
     })
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "get_dashboard", error: errorMessage }, "Error al obtener datos del dashboard")
+    console.error("Error obteniendo dashboard:", error)
+    // Retornar valores por defecto en lugar de error para mejor UX
     return NextResponse.json({
       ventasHoy: 0,
       pedidosActivos: 0,
       insumosVencer: 0,
       insumosBajoStock: 0,
-      fecha: getTodayRangeInLima().today,
+      fecha: new Date().toISOString().split('T')[0],
     })
   }
 }

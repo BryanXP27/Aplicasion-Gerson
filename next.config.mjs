@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    // TypeScript strict mode - revisar errores durante build
+    // IMPORTANTE: Revisar todos los errores TypeScript
+    // El compilador es strict en Next.js 16
     tsconfigPath: './tsconfig.json',
   },
   images: {
@@ -18,6 +19,35 @@ const nextConfig = {
   
   // Output optimizado para Next.js 16
   output: 'standalone',
+  
+  // Configuración de encabezados para reemplazar el middleware obsoleto
+  async headers() {
+    return [
+      {
+        // Aplicar a todas las rutas de la aplicación
+        source: '/:path*',
+        headers: [
+          // Encabezados de seguridad básicos
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          }
+        ],
+      },
+    ]
+  },
 }
 
 export default nextConfig

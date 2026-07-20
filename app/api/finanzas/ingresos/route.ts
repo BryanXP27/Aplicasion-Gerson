@@ -1,49 +1,56 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAuth, Rol } from "@/lib/middleware-auth"
-import logger from "@/lib/logger"
+import { requireAuth } from "@/lib/middleware-auth"
 
-export async function GET(request: NextRequest) {
-  const auth = await requireAuth(
-    { url: request.url, method: request.method },
-    [Rol.ADMIN, Rol.CAJERO]
-  )
+export async function GET() {
+  const auth = await requireAuth(["Admin", "Cajero"])
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
-    const ingresos = await prisma.ingresos.findMany({
-      orderBy: {
-        fecha_ingreso: "desc",
-      },
+    const ingresos = await (prisma as any).ingresos.findMany({
+      orderBy: { fecha_ingreso: "desc" },
     })
-    return NextResponse.json(ingresos)
+    
+    // Convertir monto a número
+    const ingresosFormatted = ingresos.map((ingreso: any) => ({
+      ...ingreso,
+      monto: Number(ingreso.monto),
+    }))
+    
+    return NextResponse.json(ingresosFormatted)
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "get_ingresos", error: errorMessage }, "Error al obtener ingresos")
-    return NextResponse.json({ error: "Error al obtener los ingresos" }, { status: 500 })
+    console.error("Error:", error)
+    return NextResponse.json({ error: "Error al obtener ingresos" }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(
-    { url: request.url, method: request.method },
-    [Rol.ADMIN]
-  )
+  const auth = await requireAuth(["Admin", "Cajero"])
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
     const data = await request.json()
-    const newIngreso = await prisma.ingresos.create({
-      data: { ...data, monto: parseFloat(data.monto) },
+
+    const ingreso = await (prisma as any).ingresos.create({
+      data: {
+        fecha_ingreso: new Date(),
+        monto: data.monto,
+        descripcion: data.descripcion,
+        categoria: data.categoria,
+        cliente: data.cliente,
+        metodo_pago: data.metodo_pago,
+        comprobante: data.comprobante,
+        estado: "Registrado",
+      },
     })
-    return NextResponse.json(newIngreso)
+
+    return NextResponse.json(ingreso)
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "create_ingreso", error: errorMessage }, "Error al crear ingreso")
+    console.error("Error:", error)
     return NextResponse.json({ error: "Error al crear ingreso" }, { status: 500 })
   }
 }

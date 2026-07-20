@@ -1,32 +1,21 @@
-<<<<<<< HEAD
 # Docker Compose versión 3.9
 # Nota: 'version' es obsoleto en docker-compose v2+, pero se incluye para compatibilidad
 
 services:
   # ==================== DATABASE ====================
-=======
-services:
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
   postgres:
     image: postgres:16-alpine
     container_name: gerson_postgres
     restart: unless-stopped
     environment:
-<<<<<<< HEAD
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_NAME:-gerson_db}
-=======
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-<<<<<<< HEAD
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-gerson_db}"]
       interval: 10s
       timeout: 5s
@@ -35,13 +24,6 @@ services:
       - gerson_network
 
   # ==================== BACKEND ====================
-=======
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
   backend:
     build:
       context: .
@@ -56,7 +38,6 @@ services:
       PORT: 3000
       DB_HOST: postgres
       DB_PORT: 5432
-<<<<<<< HEAD
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_NAME: ${DB_NAME:-gerson_db}
@@ -68,22 +49,10 @@ services:
       - "9090:9090"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
-=======
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public
-      JWT_SECRET: ${JWT_SECRET}
-    ports:
-      - "3000:3000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-<<<<<<< HEAD
     networks:
       - gerson_network
     volumes:
@@ -189,8 +158,3 @@ volumes:
 networks:
   gerson_network:
     driver: bridge
-=======
-
-volumes:
-  postgres_data:
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e

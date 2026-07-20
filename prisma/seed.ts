@@ -1,65 +1,35 @@
-import { PrismaClient, Rol, EstadoMesa } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Iniciando seed de datos...')
+  console.log('🌱 Iniciando seed mínimo...')
 
-  // Limpiar datos existentes (opcional)
   console.log('🗑️  Limpiando datos existentes...')
-  await prisma.usuarios.deleteMany({})
-  await prisma.mesas.deleteMany({})
-  await prisma.productos.deleteMany({})
+  await prisma.detalle_pollos_pedido.deleteMany()
+  await prisma.pedidos_delivery.deleteMany()
+  await prisma.detallepedido.deleteMany()
+  await prisma.pedidos.deleteMany()
+  await prisma.ingresos.deleteMany()
+  await prisma.gastos.deleteMany()
+  await prisma.inventario_pollos.deleteMany()
+  await prisma.usuarios.deleteMany()
+  await prisma.mesas.deleteMany()
+  await prisma.productos.deleteMany()
 
-  // Crear usuarios de prueba
-  console.log('👥 Creando usuarios de prueba...')
-  
-  const usuarios = [
-    {
-      nombre_user: 'Administrador',
-      apellido_user: 'Sistema',
-      correo_user: 'admin@gerson.com',
-      dni_user: '12345678',
-      telefono_user: '0987654321',
-      rol: Rol.ADMIN,
-      password: 'Admin123!',
-    },
-    {
-      nombre_user: 'Mesero',
-      apellido_user: 'Prueba',
-      correo_user: 'mesero@gerson.com',
-      dni_user: '87654321',
-      telefono_user: '0912345678',
-      rol: Rol.MESERO,
-      password: 'Mesero123!',
-    },
-    {
-      nombre_user: 'Cocinero',
-      apellido_user: 'Jefe',
-      correo_user: 'cocinero@gerson.com',
-      dni_user: '11111111',
-      telefono_user: '0911111111',
-      rol: Rol.COCINERO,
-      password: 'Cocinero123!',
-    },
-    {
-      nombre_user: 'Cajero',
-      apellido_user: 'Caja',
-      correo_user: 'cajero@gerson.com',
-      dni_user: '22222222',
-      telefono_user: '0922222222',
-      rol: Rol.CAJERO,
-      password: 'Cajero123!',
-    },
+  // --- 1. Crear usuarios ---
+  console.log('👥 Creando usuarios...')
+  const usuariosData = [
+    { nombre_user: 'Administrador', apellido_user: 'Sistema', correo_user: 'admin@gerson.com', dni_user: '12345678', telefono_user: '987654321', rol: 'ADMIN', password: 'Admin123!' },
+    { nombre_user: 'Mesero', apellido_user: 'Prueba', correo_user: 'mesero@gerson.com', dni_user: '87654321', telefono_user: '912345678', rol: 'MESERO', password: 'Mesero123!' },
+    { nombre_user: 'Cocinero', apellido_user: 'Jefe', correo_user: 'cocinero@gerson.com', dni_user: '11111111', telefono_user: '911111111', rol: 'COCINERO', password: 'Cocinero123!' },
+    { nombre_user: 'Cajero', apellido_user: 'Caja', correo_user: 'cajero@gerson.com', dni_user: '22222222', telefono_user: '922222222', rol: 'CAJERO', password: 'Cajero123!' },
   ]
 
-  for (const usuario of usuarios) {
-    // Hash de la contraseña
-    const saltRounds = 10
-    const hashedPassword = await bcrypt.hash(usuario.password, saltRounds)
-
-    const created = await prisma.usuarios.create({
+  for (const usuario of usuariosData) {
+    const hashedPassword = await bcrypt.hash(usuario.password, 10)
+    await prisma.usuarios.create({
       data: {
         nombre_user: usuario.nombre_user,
         apellido_user: usuario.apellido_user,
@@ -70,130 +40,56 @@ async function main() {
         contrasena: hashedPassword,
       },
     })
-
-    console.log(`✓ Usuario creado: ${created.correo_user} (${created.rol})`)
-    console.log(`  📧 Email: ${created.correo_user}`)
-    console.log(`  🔐 Password: ${usuario.password}`)
+    console.log(`  ✓ ${usuario.correo_user} (${usuario.rol})`)
   }
 
-  // Crear mesas de prueba
+  // --- 2. Crear mesas ---
   console.log('\n🪑 Creando mesas...')
-  
   for (let i = 1; i <= 10; i++) {
-    const mesa = await prisma.mesas.create({
-      data: {
-        numero_mesa: i,
-        capacidad_mesa: 4,
-        estado_mesa: EstadoMesa.LIBRE,
-      },
+    await prisma.mesas.create({
+      data: { numero_mesa: i, capacidad_mesa: 4, estado_mesa: 'LIBRE' },
     })
-    console.log(`✓ Mesa ${mesa.numero_mesa} creada (capacidad: ${mesa.capacidad_mesa})`)
   }
+  console.log('  ✓ 10 mesas creadas')
 
-  // Crear productos de prueba
+  // --- 3. Crear productos ---
   console.log('\n🍗 Creando productos...')
-  
-  const productos = [
-    {
-      nombre_produc: 'Pollo Rostizado 1/4',
-      descripcion_produc: 'Pollo fresco rostizado al carbón',
-      precio_produc: 8.50,
-      categoria_produc: 'Pollo',
-      stock_produc: 50,
-      vencimiento_produc: new Date('2026-12-31'),
-    },
-    {
-      nombre_produc: 'Pollo Rostizado 1/2',
-      descripcion_produc: 'Media gallina rostizada al carbón',
-      precio_produc: 15.00,
-      categoria_produc: 'Pollo',
-      stock_produc: 40,
-      vencimiento_produc: new Date('2026-12-31'),
-    },
-    {
-      nombre_produc: 'Pollo Rostizado Completo',
-      descripcion_produc: 'Pollo completo fresco rostizado',
-      precio_produc: 25.00,
-      categoria_produc: 'Pollo',
-      stock_produc: 30,
-      vencimiento_produc: new Date('2026-12-31'),
-    },
-    {
-      nombre_produc: 'Papas Fritas',
-      descripcion_produc: 'Papas fritas caseras',
-      precio_produc: 2.50,
-      categoria_produc: 'Acompañamientos',
-      stock_produc: 100,
-      vencimiento_produc: new Date('2026-12-31'),
-    },
-    {
-      nombre_produc: 'Ensalada de Lechuga',
-      descripcion_produc: 'Ensalada fresca con lechuga, tomate y cebolla',
-      precio_produc: 3.00,
-      categoria_produc: 'Ensaladas',
-      stock_produc: 60,
-      vencimiento_produc: new Date('2026-12-31'),
-    },
-    {
-      nombre_produc: 'Refresco Coca Cola',
-      descripcion_produc: 'Bebida gaseosa',
-      precio_produc: 1.50,
-      categoria_produc: 'Bebidas',
-      stock_produc: 200,
-      vencimiento_produc: new Date('2026-12-31'),
-    },
-    {
-      nombre_produc: 'Cerveza Pilsener',
-      descripcion_produc: 'Cerveza fría',
-      precio_produc: 2.00,
-      categoria_produc: 'Bebidas',
-      stock_produc: 150,
-      vencimiento_produc: new Date('2026-12-31'),
-    },
-    {
-      nombre_produc: 'Jugo Natural',
-      descripcion_produc: 'Jugo fresco de frutas',
-      precio_produc: 2.50,
-      categoria_produc: 'Bebidas',
-      stock_produc: 80,
-      vencimiento_produc: new Date('2026-12-31'),
-    },
+  const productosData = [
+    { nombre_produc: 'Pollo Rostizado 1/4', descripcion_produc: 'Pollo fresco rostizado al carbón', precio_produc: 8.50, categoria_produc: 'Pollo', stock_produc: 100, controlar_stock: false },
+    { nombre_produc: 'Pollo Rostizado 1/2', descripcion_produc: 'Media gallina rostizada al carbón', precio_produc: 15.00, categoria_produc: 'Pollo', stock_produc: 100, controlar_stock: false },
+    { nombre_produc: 'Pollo Rostizado Completo', descripcion_produc: 'Pollo completo fresco rostizado', precio_produc: 25.00, categoria_produc: 'Pollo', stock_produc: 100, controlar_stock: false },
+    { nombre_produc: 'Papas Fritas', descripcion_produc: 'Papas fritas caseras', precio_produc: 2.50, categoria_produc: 'Acompañamientos', stock_produc: 200, controlar_stock: true },
+    { nombre_produc: 'Ensalada de Lechuga', descripcion_produc: 'Ensalada fresca con lechuga, tomate y cebolla', precio_produc: 3.00, categoria_produc: 'Ensaladas', stock_produc: 100, controlar_stock: true },
+    { nombre_produc: 'Refresco Coca Cola', descripcion_produc: 'Bebida gaseosa', precio_produc: 1.50, categoria_produc: 'Bebidas', stock_produc: 300, controlar_stock: true },
   ]
 
-  for (const producto of productos) {
-    const created = await prisma.productos.create({
+  for (const producto of productosData) {
+    await prisma.productos.create({
       data: {
         nombre_produc: producto.nombre_produc,
         descripcion_produc: producto.descripcion_produc,
         precio_produc: producto.precio_produc,
         categoria_produc: producto.categoria_produc,
         stock_produc: producto.stock_produc,
-        vencimiento_produc: producto.vencimiento_produc,
-        controlar_stock: true,
+        controlar_stock: producto.controlar_stock,
+        vencimiento_produc: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },
     })
-    console.log(
-      `✓ Producto creado: ${created.nombre_produc} (S/. ${Number(created.precio_produc).toFixed(2)})`
-    )
+    console.log(`  ✓ ${producto.nombre_produc} (S/. ${producto.precio_produc.toFixed(2)})`)
   }
 
-  console.log('\n✅ Seed de datos completado exitosamente!')
+  console.log('\n✅ Seed completado exitosamente!')
   console.log('\n📋 Usuarios creados:')
-  console.log('─'.repeat(60))
-  console.log('Email                    | Password       | Rol')
-  console.log('─'.repeat(60))
-  console.log('admin@gerson.com         | Admin123!      | Admin')
-  console.log('mesero@gerson.com        | Mesero123!     | Mesero')
-  console.log('cocinero@gerson.com      | Cocinero123!   | Cocinero')
-  console.log('cajero@gerson.com        | Cajero123!     | Cajero')
-  console.log('─'.repeat(60))
+  console.log('  admin@gerson.com    | Admin123!    | ADMIN')
+  console.log('  mesero@gerson.com   | Mesero123!   | MESERO')
+  console.log('  cocinero@gerson.com | Cocinero123! | COCINERO')
+  console.log('  cajero@gerson.com   | Cajero123!   | CAJERO')
 }
 
 main()
-  .catch((e) => {
-    console.error("Error en seeding:", e)
-    process.exit(1)
-  })
-  .finally(async () => {
+  .then(async () => { await prisma.$disconnect() })
+  .catch(async (e) => {
+    console.error('❌ Error en seed:', e)
     await prisma.$disconnect()
+    process.exit(1)
   })

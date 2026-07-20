@@ -1,20 +1,37 @@
 import { getSession } from "./auth"
-import logger from "./logger"
-import { Rol, EstadoPedido } from "@prisma/client"
 
-export { Rol, EstadoPedido }
+// Enums definidos localmente (Prisma 5.x no exporta enums como valores JS)
+export const Rol = {
+  ADMIN: 'ADMIN',
+  MESERO: 'MESERO',
+  COCINERO: 'COCINERO',
+  CAJERO: 'CAJERO',
+} as const
+
+export const EstadoPedido = {
+  EN_PREPARACION: 'EN_PREPARACION',
+  EN_PROCESO: 'EN_PROCESO',
+  LISTO_PARA_RECOGER: 'LISTO_PARA_RECOGER',
+  SERVIDO: 'SERVIDO',
+  PAGADO: 'PAGADO',
+  CANCELADO: 'CANCELADO',
+} as const
+
+export const EstadoMesa = {
+  LIBRE: 'LIBRE',
+  OCUPADA: 'OCUPADA',
+  RESERVADA: 'RESERVADA',
+} as const
+
 
 export async function requireAuth(
-  request: { url: string; method: string },
-  allowedRoles?: Rol[]
+  arg1?: { url?: string; method?: string } | string[],
+  arg2?: string[]
 ) {
+  const allowedRoles = Array.isArray(arg1) ? arg1 : arg2
   const session = await getSession()
 
   if (!session) {
-    logger.warn(
-      { action: "requireAuth", path: request.url, method: request.method },
-      "Acceso no autorizado: No hay sesión"
-    )
     return {
       error: "No autorizado",
       status: 401,
@@ -22,17 +39,11 @@ export async function requireAuth(
   }
 
   if (allowedRoles) {
-    if (!allowedRoles.includes(session.rol as Rol)) {
-      logger.error(
-        {
-          action: "requireAuth",
-          userId: session.id,
-          userRole: session.rol,
-          requiredRoles: allowedRoles,
-          path: request.url,
-        },
-        "Acceso prohibido: Rol no permitido"
-      )
+    // Normalizar rol del usuario: MAYÚSCULAS -> Capitalizadas
+    const userRole = normalizeRole(session.rol)
+    const normalizedAllowedRoles = allowedRoles.map(normalizeRole)
+
+    if (!normalizedAllowedRoles.includes(userRole)) {
       return {
         error: "No tienes permisos para acceder a este recurso",
         status: 403,
@@ -40,5 +51,14 @@ export async function requireAuth(
     }
   }
 
-  return session
+  return { session }
+}
+
+// Normaliza roles: 'ADMIN' -> 'Admin', 'admin' -> 'Admin'
+function normalizeRole(role: string): string {
+  return role
+    .toLowerCase()
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('')
 }

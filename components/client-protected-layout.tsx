@@ -67,7 +67,7 @@ export function ClientProtectedLayout({
   return (
     <div className="flex min-h-screen bg-[#1C1C1C] overflow-hidden">
       <Sidebar session={session} />
-      <main className="flex-1 p-4 md:p-8 overflow-x-hidden pb-20 md:pb-0">{children}</main>
+      <main className="flex-1 p-4 md:p-8 overflow-x-hidden pb-20 sm:pb-0">{children}</main>
     </div>
   )
 }

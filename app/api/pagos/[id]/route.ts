@@ -1,18 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAuth } from "@/lib/middleware-auth"
+import { requireAuth, Rol, EstadoPedido } from "@/lib/middleware-auth"
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAuth(["Admin", "Cajero"])
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    [Rol.ADMIN, Rol.CAJERO]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
+  const { id } = await params
   try {
-    const { id } = await params
     const { nombreCliente, dniCliente, tipoComprobante, total } = await request.json()
 
     if (!nombreCliente || !dniCliente) {
@@ -27,25 +30,21 @@ export async function POST(
       return NextResponse.json({ error: "Tipo de comprobante inválido" }, { status: 400 })
     }
 
-    // Verificar que el pedido existe y está en estado "Servido"
     const pedidoExistente = await prisma.pedidos.findUnique({
       where: { id_pedido: parseInt(id) },
-      include: {
-        detallepedido: true
-      }
+      include: { detallepedido: true },
     })
 
     if (!pedidoExistente) {
       return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
     }
 
-    if (pedidoExistente.estado_pedido !== "Servido") {
+    if (pedidoExistente.estado_pedido !== EstadoPedido.SERVIDO) {
       return NextResponse.json({ error: "Solo se pueden procesar pagos de pedidos servidos" }, { status: 400 })
     }
 
-    // Calcular el total real del pedido para verificar
     const totalReal = pedidoExistente.detallepedido.reduce(
-      (sum: number, detalle: any) => sum + Number(detalle.subtotal), 
+      (sum: number, detalle) => sum + Number(detalle.subtotal),
       0
     )
 
@@ -53,26 +52,22 @@ export async function POST(
       return NextResponse.json({ error: "El total del pago no coincide con el pedido" }, { status: 400 })
     }
 
-    // Actualizar el estado del pedido a "Pagado"
     const pedidoActualizado = await prisma.pedidos.update({
       where: { id_pedido: parseInt(id) },
-      data: { 
-        estado_pedido: "Pagado"
-      }
+      data: { estado_pedido: EstadoPedido.PAGADO },
     })
 
-    // Registrar el ingreso en finanzas automáticamente
-    await (prisma as any).ingresos.create({
+    await prisma.ingresos.create({
       data: {
         fecha_ingreso: new Date(),
         monto: Number(total),
-        descripcion: `Venta - Pedido #${pedidoActualizado.id_pedido} - ${tipoComprobante === 'boleta' ? 'Boleta' : 'Nota de Venta'} - Cliente: ${nombreCliente}`,
+        descripcion: `Venta - Pedido #${pedidoActualizado.id_pedido} - ${tipoComprobante === "boleta" ? "Boleta" : "Nota de Venta"} - Cliente: ${nombreCliente}`,
         categoria: "Ventas",
         cliente: nombreCliente,
         metodo_pago: "Efectivo",
-        comprobante: tipoComprobante === 'boleta' ? `B-${dniCliente}` : `NV-${dniCliente}`,
+        comprobante: tipoComprobante === "boleta" ? `B-${dniCliente}` : `NV-${dniCliente}`,
         estado: "Registrado",
-      }
+      },
     })
 
     return NextResponse.json({
@@ -81,14 +76,10 @@ export async function POST(
       pedido: {
         id: pedidoActualizado.id_pedido.toString(),
         estado: pedidoActualizado.estado_pedido,
-        cliente: {
-          nombre: nombreCliente,
-          dni: dniCliente
-        },
-        total: totalReal
-      }
+        cliente: { nombre: nombreCliente, dni: dniCliente },
+        total: totalReal,
+      },
     })
-
   } catch (error) {
     console.error("Error procesando pago:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })

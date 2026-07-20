@@ -46,67 +46,67 @@ export function Sidebar({ session }: SidebarProps) {
       title: "Dashboard",
       icon: LayoutDashboard,
       href: "/dashboard",
-      roles: ["Admin", "Mesero", "Cocinero", "Cajero"],
+      roles: ["ADMIN", "MESERO", "COCINERO", "CAJERO"],
     },
     {
       title: "Usuarios",
       icon: Users,
       href: "/usuarios",
-      roles: ["Admin"],
+      roles: ["ADMIN"],
     },
     {
       title: "Mesas",
       icon: UtensilsCrossed,
       href: "/mesas",
-      roles: ["Admin", "Mesero"],
+      roles: ["ADMIN", "MESERO"],
     },
     {
       title: "Productos",
       icon: Package,
       href: "/productos",
-      roles: ["Admin"],
+      roles: ["ADMIN"],
     },
     {
       title: "Insumos",
       icon: Package,
       href: "/insumos",
-      roles: ["Admin"],
+      roles: ["ADMIN"],
     },
     {
       title: "Pedidos",
       icon: ShoppingCart,
       href: "/pedidos",
-      roles: ["Admin", "Mesero", "Cajero"],
+      roles: ["ADMIN", "MESERO", "CAJERO"],
     },
     {
       title: "Cocina",
       icon: ChefHat,
       href: "/cocina",
-      roles: ["Admin", "Cocinero"],
+      roles: ["ADMIN", "COCINERO"],
     },
     {
       title: "Pagos",
       icon: DollarSign,
       href: "/pagos",
-      roles: ["Admin", "Cajero"],
+      roles: ["ADMIN", "CAJERO"],
     },
     {
       title: "Registros",
       icon: BarChart3,
       href: "/registros",
-      roles: ["Admin", "Cajero"],
+      roles: ["ADMIN", "CAJERO"],
     },
     {
       title: "Finanzas",
       icon: DollarSign,
       href: "/finanzas",
-      roles: ["Admin", "Cajero"],
+      roles: ["ADMIN", "CAJERO"],
     },
     {
       title: "Inventario de Pollos",
       icon: Drumstick,
       href: "/inventario-pollos",
-      roles: ["Admin", "Mesero"],
+      roles: ["ADMIN", "MESERO"],
     },
   ]
 
@@ -114,7 +114,7 @@ export function Sidebar({ session }: SidebarProps) {
 
   return (
     <>
-      {/* Sidebar Colapsable - Visible en md+ */}
+      {/* Sidebar Colapsable - Siempre visible */}
       <aside 
         style={{ 
           width: isCollapsed ? '80px' : '256px',
@@ -124,7 +124,7 @@ export function Sidebar({ session }: SidebarProps) {
           flexDirection: 'column',
           transition: 'width 0.3s ease'
         }}
-        className="hidden md:flex bg-[#2F2F2F] min-h-screen flex-col"
+        className="bg-[#2F2F2F] min-h-screen flex-col"
       >
         {/* Header con botón para expandir/colapsar */}
         <div 
@@ -185,7 +185,8 @@ export function Sidebar({ session }: SidebarProps) {
             padding: isCollapsed ? '8px' : '12px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px'
+            gap: '4px',
+            overflowY: 'auto',
           }}
           className="flex-1 space-y-1"
         >
@@ -286,7 +287,7 @@ export function Sidebar({ session }: SidebarProps) {
 
       {/* Sidebar Móvil - Drawer */}
       {/* En móvil mostraremos solo los iconos como una barra inferior o con hamburger menu */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#2F2F2F] border-t border-[#C9A227] flex justify-around items-center h-16">
+      <div className="flex sm:hidden fixed bottom-0 left-0 right-0 bg-[#2F2F2F] border-t border-[#C9A227] flex justify-around items-center h-16">
         {filteredMenu.slice(0, 5).map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href

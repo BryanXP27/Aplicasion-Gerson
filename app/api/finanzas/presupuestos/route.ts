@@ -1,27 +1,56 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
-import logger from "@/lib/logger"
 
-export async function GET(request: NextRequest) {
-  const auth = await requireAuth(
-    { url: request.url, method: request.method },
-    ["ADMIN", "CAJERO"]
-  )
+export async function GET() {
+  const auth = await requireAuth(["Admin", "Cajero"])
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
-    // NOTA: El modelo 'presupuestos' no existe en tu schema.prisma.
-    // Deberás crearlo o ajustar esta lógica.
-    // Por ahora, devuelvo un array vacío para que la compilación no falle.
-    const presupuestos: any[] = []
-    logger.info({ action: "get_presupuestos", count: presupuestos.length }, "Presupuestos obtenidos")
-    return NextResponse.json(presupuestos)
+    const presupuestos = await (prisma as any).presupuestos.findMany({
+      orderBy: { fecha_inicio: "desc" },
+    })
+    
+    // Convertir montos a números
+    const presupuestosFormatted = presupuestos.map((presupuesto: any) => ({
+      ...presupuesto,
+      monto_total: Number(presupuesto.monto_total),
+      monto_usado: Number(presupuesto.monto_usado),
+    }))
+    
+    return NextResponse.json(presupuestosFormatted)
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "get_presupuestos", error: errorMessage }, "Error al obtener presupuestos")
+    console.error("Error:", error)
     return NextResponse.json({ error: "Error al obtener presupuestos" }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth(["Admin"])
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status })
+  }
+
+  try {
+    const data = await request.json()
+
+    const presupuesto = await (prisma as any).presupuestos.create({
+      data: {
+        nombre: data.nombre,
+        monto_total: data.monto_total,
+        monto_usado: 0,
+        categoria: data.categoria,
+        fecha_inicio: new Date(data.fecha_inicio),
+        fecha_fin: new Date(data.fecha_fin),
+        estado: "Activo",
+      },
+    })
+
+    return NextResponse.json(presupuesto)
+  } catch (error) {
+    console.error("Error:", error)
+    return NextResponse.json({ error: "Error al crear presupuesto" }, { status: 500 })
   }
 }

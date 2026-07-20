@@ -1,49 +1,56 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
-import logger from "@/lib/logger"
 
-export async function GET(request: NextRequest) {
-  const auth = await requireAuth(
-    { url: request.url, method: request.method },
-    ["ADMIN", "CAJERO"]
-  )
+export async function GET() {
+  const auth = await requireAuth(["Admin", "Cajero"])
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
-    const gastos = await prisma.gastos.findMany({
-      orderBy: {
-        fecha_gasto: "desc",
-      },
+    const gastos = await (prisma as any).gastos.findMany({
+      orderBy: { fecha_gasto: "desc" },
     })
-    return NextResponse.json(gastos)
+    
+    // Convertir monto a número
+    const gastosFormatted = gastos.map((gasto: any) => ({
+      ...gasto,
+      monto: Number(gasto.monto),
+    }))
+    
+    return NextResponse.json(gastosFormatted)
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "get_gastos", error: errorMessage }, "Error al obtener gastos")
+    console.error("Error:", error)
     return NextResponse.json({ error: "Error al obtener gastos" }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(
-    { url: request.url, method: request.method },
-    ["ADMIN"]
-  )
+  const auth = await requireAuth(["Admin", "Cajero"])
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   try {
     const data = await request.json()
-    const newGasto = await prisma.gastos.create({
-      data: { ...data, monto: parseFloat(data.monto) },
+
+    const gasto = await (prisma as any).gastos.create({
+      data: {
+        fecha_gasto: new Date(),
+        monto: data.monto,
+        descripcion: data.descripcion,
+        categoria: data.categoria,
+        proveedor: data.proveedor,
+        metodo_pago: data.metodo_pago,
+        comprobante: data.comprobante,
+        estado: "Registrado",
+      },
     })
-    return NextResponse.json(newGasto)
+
+    return NextResponse.json(gasto)
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
-    logger.error({ action: "create_gasto", error: errorMessage }, "Error al crear gasto")
+    console.error("Error:", error)
     return NextResponse.json({ error: "Error al crear gasto" }, { status: 500 })
   }
 }

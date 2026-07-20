@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ========================================================================================
 # 📋 CONFIGMAP: Configuración no sensible de la aplicación
 # ========================================================================================
@@ -42,15 +41,4 @@ data:
   DB_PORT: "5432"
   
   # Nombre de la base de datos a usar
-=======
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config
-data:
-  NODE_ENV: "production"
-  PORT: "3000"
-  DB_HOST: "postgres"
-  DB_PORT: "5432"
->>>>>>> 6ca1d5ea6b7d57cb64a864fbec055783162f736e
   DB_NAME: "polleria_gerson"

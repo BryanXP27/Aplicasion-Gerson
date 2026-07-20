@@ -1,18 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAuth } from "@/lib/middleware-auth"
+import { requireAuth, Rol, EstadoPedido } from "@/lib/middleware-auth"
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAuth(["Admin", "Mesero"])
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    [Rol.ADMIN, Rol.MESERO]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
+  const { id } = await params
   try {
-    const { id } = await params
     const { estado, numero, capacidad } = await request.json()
 
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (estado) updateData.estado_mesa = estado
     if (numero) updateData.numero_mesa = numero
     if (capacidad) updateData.capacidad_mesa = capacidad
@@ -35,13 +38,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAuth(["Admin"])
+  const auth = await requireAuth(
+    { url: request.url, method: request.method },
+    [Rol.ADMIN]
+  )
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
+  const { id } = await params
   try {
-    const { id } = await params
     const mesaId = parseInt(id)
 
     // Verificar si la mesa tiene pedidos activos
@@ -49,39 +55,31 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       where: {
         id_mesa: mesaId,
         estado_pedido: {
-          notIn: ["Completado", "Pagado", "Cancelado"]
-        }
-      }
+          notIn: [EstadoPedido.PAGADO, EstadoPedido.CANCELADO],
+        },
+      },
     })
 
     if (pedidosActivos > 0) {
-      return NextResponse.json({ 
-        error: "No se puede eliminar una mesa que tiene pedidos activos. Completar o cancelar los pedidos primero." 
+      return NextResponse.json({
+        error: "No se puede eliminar una mesa que tiene pedidos activos. Completar o cancelar los pedidos primero.",
       }, { status: 400 })
     }
 
-    // Verificar si hay ALGUNos pedidos asociados (incluso completados)
-    const totalPedidos = await prisma.pedidos.count({
-      where: { id_mesa: mesaId }
-    })
+    const totalPedidos = await prisma.pedidos.count({ where: { id_mesa: mesaId } })
 
     if (totalPedidos > 0) {
-      return NextResponse.json({ 
-        error: "No se puede eliminar una mesa que tiene historial de pedidos. Revisa los registros para más información." 
+      return NextResponse.json({
+        error: "No se puede eliminar una mesa que tiene historial de pedidos.",
       }, { status: 400 })
     }
 
-    // Si no tiene pedidos, eliminar normalmente
-    await prisma.mesas.delete({
-      where: { id_mesa: mesaId },
-    })
+    await prisma.mesas.delete({ where: { id_mesa: mesaId } })
 
     return NextResponse.json({ success: true, message: "Mesa eliminada correctamente" })
   } catch (error) {
     console.error("Error eliminando mesa:", error)
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-    return NextResponse.json({ 
-      error: `Error al eliminar mesa: ${errorMessage}` 
-    }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido"
+    return NextResponse.json({ error: `Error al eliminar mesa: ${errorMessage}` }, { status: 500 })
   }
 }
