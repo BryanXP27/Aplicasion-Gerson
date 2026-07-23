@@ -164,6 +164,38 @@ export function MesaCard({ mesa, onUpdate, isAdmin }: MesaCardProps) {
     }
   }
 
+  /** Cancela el pedido activo y libera la mesa */
+  const cancelarPedidoMesa = async () => {
+    if (!pedidoActual) return
+
+    const confirmacion = confirm(
+      `¿Está seguro que desea CANCELAR el pedido de la Mesa ${mesa.numero}? Esta acción no se puede deshacer.`
+    )
+    if (!confirmacion) return
+
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/pedidos/${pedidoActual.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      if (res.ok) {
+        alert("Pedido cancelado y mesa liberada exitosamente")
+        setPedidoActual(null)
+        onUpdate()
+      } else {
+        const error = await res.json()
+        alert(error.error || "Error al cancelar el pedido")
+      }
+    } catch (error) {
+      console.error("Error cancelando pedido:", error)
+      alert("Error al cancelar el pedido")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   /** 
    * Callback cuando se crea o actualiza un pedido exitosamente
    * Cierra el modal, refresca el pedido y actualiza la lista
@@ -290,14 +322,24 @@ export function MesaCard({ mesa, onUpdate, isAdmin }: MesaCardProps) {
               </Button>
             ) : (
               // Botón para modificar pedido si aún no está pagado
-              <Button 
-                onClick={() => setShowPedidoDialog(true)} 
-                className="w-full bg-[#C9A227] hover:bg-[#a88820] text-[#1C1C1C] text-xs md:text-sm py-2 md:py-2"
-                disabled={loading}
-              >
-                <Edit3 className="w-3 md:w-4 h-3 md:h-4 mr-1" />
-                Modificar
-              </Button>
+              <div className="space-y-2">
+                <Button 
+                  onClick={() => setShowPedidoDialog(true)} 
+                  className="w-full bg-[#C9A227] hover:bg-[#a88820] text-[#1C1C1C] text-xs md:text-sm py-2 md:py-2"
+                  disabled={loading}
+                >
+                  <Edit3 className="w-3 md:w-4 h-3 md:h-4 mr-1" />
+                  Modificar
+                </Button>
+                <Button 
+                  onClick={cancelarPedidoMesa}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm py-2 md:py-2"
+                  disabled={loading}
+                >
+                  <Trash2 className="w-3 md:w-4 h-3 md:h-4 mr-1" />
+                  Cancelar Pedido
+                </Button>
+              </div>
             )}
           </>
         ) : (
