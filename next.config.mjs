@@ -18,7 +18,8 @@ const nextConfig = {
   // Antes: swcMinify: true,
   
   // Output optimizado para Next.js 16
-  output: 'standalone',
+  // Nota: 'standalone' es para Docker/self-hosted; se omite para Vercel
+  // output: 'standalone',
   
   // Configuración de encabezados para reemplazar el middleware obsoleto
   async headers() {

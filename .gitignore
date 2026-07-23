@@ -24,6 +24,8 @@ yarn-error.log*
 # Ignore all local environment files.
 .env
 .env.local
+.env.development
+.env.production
 .env.*.local
 
 # vercel
@@ -43,3 +45,18 @@ docker-data
 
 # Ignorar secretos de Kubernetes
 k8s/secret.yaml
+
+# logs
+*.log
+server.log
+
+# scripts locales
+*.sh
+*.ps1
+scripts/
+test-db.js
+inspect-swc.js
+
+# documentación interna
+docs/
+JENKINS_*.md
