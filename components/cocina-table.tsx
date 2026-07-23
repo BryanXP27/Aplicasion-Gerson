@@ -62,7 +62,7 @@ export function CocinaTable() {
       let countNuevos = 0
 
       data.forEach((pedido: Pedido) => {
-        if (!pedidosIdsRef.current.has(pedido.id) && pedido.estado === "En preparacion") {
+        if (!pedidosIdsRef.current.has(pedido.id) && pedido.estado?.toUpperCase() === "EN_PREPARACION") {
           hayNuevosPedidos = true
           countNuevos++
           playAlarmSound() // Reproducir sonido de alarma
@@ -222,7 +222,7 @@ export function CocinaTable() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        {pedido.estado === "En preparacion" && (
+                        {pedido.estado?.toUpperCase() === "EN_PREPARACION" && (
                           <Button
                             size="sm"
                             onClick={() => cambiarEstado(pedido.id, "En proceso")}
@@ -232,7 +232,7 @@ export function CocinaTable() {
                             Preparar
                           </Button>
                         )}
-                        {pedido.estado === "En proceso" && (
+                        {pedido.estado?.toUpperCase() === "EN_PROCESO" && (
                           <Button
                             size="sm"
                             onClick={() => cambiarEstado(pedido.id, "Listo para recoger")}
@@ -242,7 +242,7 @@ export function CocinaTable() {
                             Listo
                           </Button>
                         )}
-                        {pedido.estado === "Listo para recoger" && (
+                        {pedido.estado?.toUpperCase() === "LISTO_PARA_RECOGER" && (
                           <Button
                             size="sm"
                             onClick={() => cambiarEstado(pedido.id, "Servido")}
@@ -324,7 +324,7 @@ export function CocinaTable() {
               </div>
 
               <div className="flex gap-2 mt-3 flex-wrap">
-                {pedido.estado === "En preparacion" && (
+                {pedido.estado?.toUpperCase() === "EN_PREPARACION" && (
                   <Button
                     size="sm"
                     onClick={() => cambiarEstado(pedido.id, "En proceso")}
@@ -334,7 +334,7 @@ export function CocinaTable() {
                     Preparar
                   </Button>
                 )}
-                {pedido.estado === "En proceso" && (
+                {pedido.estado?.toUpperCase() === "EN_PROCESO" && (
                   <Button
                     size="sm"
                     onClick={() => cambiarEstado(pedido.id, "Listo para recoger")}
@@ -344,7 +344,7 @@ export function CocinaTable() {
                     Listo
                   </Button>
                 )}
-                {pedido.estado === "Listo para recoger" && (
+                {pedido.estado?.toUpperCase() === "LISTO_PARA_RECOGER" && (
                   <Button
                     size="sm"
                     onClick={() => cambiarEstado(pedido.id, "Servido")}

@@ -93,10 +93,10 @@ export function RegistrosTable() {
         
         // Filtrar solo pedidos completados
         const pedidosCompletados = pedidosData.filter((p: Pedido) => 
-          p.estado === "Completado" || 
-          p.estado === "Pagado" || 
-          p.estado === "Servido" || 
-          p.estado === "Listo para recoger"
+          p.estado?.toUpperCase() === "COMPLETADO" || 
+          p.estado?.toUpperCase() === "PAGADO" || 
+          p.estado?.toUpperCase() === "SERVIDO" || 
+          p.estado?.toUpperCase() === "LISTO_PARA_RECOGER"
         )
         setPedidos(pedidosCompletados)
       } else {
@@ -424,7 +424,7 @@ export function RegistrosTable() {
                   </td>
                   <td className="px-4 md:px-6 py-3 md:py-4">
                     <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${
-                      pedido.estado === "Pagado"
+                      pedido.estado?.toUpperCase() === "PAGADO"
                         ? "bg-green-500 bg-opacity-20 text-green-400"
                         : "bg-blue-500 bg-opacity-20 text-blue-400"
                     }`}>
@@ -454,7 +454,7 @@ export function RegistrosTable() {
                   <p className="text-[#EAEAEA] text-xs mt-1">{new Date(pedido.fecha).toLocaleDateString()}</p>
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  pedido.estado === "Pagado"
+                  pedido.estado?.toUpperCase() === "PAGADO"
                     ? "bg-green-500 bg-opacity-20 text-green-400"
                     : "bg-blue-500 bg-opacity-20 text-blue-400"
                 }`}>

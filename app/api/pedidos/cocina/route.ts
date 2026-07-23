@@ -23,7 +23,7 @@ export async function GET() {
           lt: mañana,
         },
         estado_pedido: {
-          in: ["En preparacion", "En proceso", "Listo para recoger"]
+          in: ["EN_PREPARACION", "EN_PROCESO", "LISTO_PARA_RECOGER"]
         }
       },
       include: {

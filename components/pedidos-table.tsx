@@ -273,7 +273,7 @@ export function PedidosTable() {
                         Ver
                       </Button>
                       
-                      {pedido.estado === "En preparacion" && (
+                      {pedido.estado?.toUpperCase() === "EN_PREPARACION" && (
                         <Button 
                           size="sm" 
                           onClick={() => cambiarEstadoPedido(pedido, "En proceso")}
@@ -283,7 +283,7 @@ export function PedidosTable() {
                         </Button>
                       )}
                       
-                      {pedido.estado === "En proceso" && (
+                      {pedido.estado?.toUpperCase() === "EN_PROCESO" && (
                         <Button 
                           size="sm" 
                           onClick={() => cambiarEstadoPedido(pedido, "Listo para recoger")}
@@ -293,7 +293,7 @@ export function PedidosTable() {
                         </Button>
                       )}
                       
-                      {pedido.estado === "Listo para recoger" && (
+                      {pedido.estado?.toUpperCase() === "LISTO_PARA_RECOGER" && (
                         <Button 
                           size="sm" 
                           onClick={() => cambiarEstadoPedido(pedido, "Servido")}
@@ -303,7 +303,7 @@ export function PedidosTable() {
                         </Button>
                       )}
                       
-                      {pedido.estado === "Pagado" && (
+                      {pedido.estado?.toUpperCase() === "PAGADO" && (
                         <Button 
                           size="sm" 
                           onClick={() => cambiarEstadoPedido(pedido, "Completado")}
@@ -313,7 +313,7 @@ export function PedidosTable() {
                         </Button>
                       )}
 
-                      {["En preparacion", "En proceso"].includes(pedido.estado) && (
+                      {["EN_PREPARACION", "EN_PROCESO"].includes(pedido.estado?.toUpperCase()) && (
                         <Button 
                           size="sm" 
                           onClick={() => cancelarPedido(pedido.idPedidoDb)}
@@ -379,7 +379,7 @@ export function PedidosTable() {
                   Ver
                 </Button>
                 
-                {pedido.estado === "En preparacion" && (
+                {pedido.estado?.toUpperCase() === "EN_PREPARACION" && (
                   <Button 
                     size="sm" 
                     onClick={() => cambiarEstadoPedido(pedido, "En proceso")}
@@ -389,7 +389,7 @@ export function PedidosTable() {
                   </Button>
                 )}
                 
-                {pedido.estado === "En proceso" && (
+                {pedido.estado?.toUpperCase() === "EN_PROCESO" && (
                   <Button 
                     size="sm" 
                     onClick={() => cambiarEstadoPedido(pedido, "Listo para recoger")}
@@ -399,7 +399,7 @@ export function PedidosTable() {
                   </Button>
                 )}
                 
-                {pedido.estado === "Listo para recoger" && (
+                {pedido.estado?.toUpperCase() === "LISTO_PARA_RECOGER" && (
                   <Button 
                     size="sm" 
                     onClick={() => cambiarEstadoPedido(pedido, "Servido")}
@@ -409,7 +409,7 @@ export function PedidosTable() {
                   </Button>
                 )}
                 
-                {pedido.estado === "Servido" && (
+                {pedido.estado?.toUpperCase() === "SERVIDO" && (
                   <Button 
                     size="sm" 
                     onClick={() => cambiarEstadoPedido(pedido, "Completado")}
@@ -419,7 +419,7 @@ export function PedidosTable() {
                   </Button>
                 )}
                 
-                {(pedido.estado === "En preparacion" || pedido.estado === "En proceso" || pedido.estado === "Listo para recoger") && (
+                {(pedido.estado?.toUpperCase() === "EN_PREPARACION" || pedido.estado?.toUpperCase() === "EN_PROCESO" || pedido.estado?.toUpperCase() === "LISTO_PARA_RECOGER") && (
                   <Button 
                     size="sm" 
                     onClick={() => cambiarEstadoPedido(pedido, "Cancelado")}

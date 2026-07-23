@@ -33,7 +33,7 @@ export async function PUT(
         return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
       }
 
-      if (pedido.estado_pedido !== EstadoPedido.PAGADO) {
+      if (pedido.estado_pedido?.toUpperCase() !== EstadoPedido.PAGADO) {
         return NextResponse.json({ error: "Solo se pueden liberar mesas de pedidos pagados" }, { status: 400 })
       }
     }

@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       whereParaFiltro.id_mesa = parseInt(mesaId)
     }
     if (estado) {
-      whereParaFiltro.estado_pedido = estado
+      whereParaFiltro.estado_pedido = estado.toUpperCase()
     }
 
     // Obtener todos los pedidos del día (para saber la numeración correcta)
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
       data: {
         id_mesa: finalMesaId!,
         id_user: parseInt(auth.session.id),
-        estado_pedido: "En preparacion",
+        estado_pedido: "EN_PREPARACION",
         observaciones: observaciones || null,
       },
     })

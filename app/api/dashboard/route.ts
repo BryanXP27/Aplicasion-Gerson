@@ -49,7 +49,7 @@ export async function GET() {
       prisma.pedidos.count({
         where: {
           estado_pedido: {
-            in: ["En preparacion", "En proceso", "Listo para recoger", "Servido"],
+            in: ["EN_PREPARACION", "EN_PROCESO", "LISTO_PARA_RECOGER", "SERVIDO"],
           },
         },
       }),

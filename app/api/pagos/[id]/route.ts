@@ -39,7 +39,7 @@ export async function POST(
       return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
     }
 
-    if (pedidoExistente.estado_pedido !== EstadoPedido.SERVIDO) {
+    if (pedidoExistente.estado_pedido?.toUpperCase() !== EstadoPedido.SERVIDO) {
       return NextResponse.json({ error: "Solo se pueden procesar pagos de pedidos servidos" }, { status: 400 })
     }
 

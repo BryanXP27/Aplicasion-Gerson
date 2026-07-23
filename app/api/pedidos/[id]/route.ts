@@ -101,9 +101,10 @@ export async function PUT(
 
     // CASO 1: Solo actualizar estado
     if (body.estado && !body.detalles) {
+      const nuevoEstado = body.estado.toUpperCase()
       const pedidoActualizado = await prisma.pedidos.update({
         where: { id_pedido: pedidoId },
-        data: { estado_pedido: body.estado },
+        data: { estado_pedido: nuevoEstado },
       })
       return NextResponse.json({
         id: pedidoActualizado.id_pedido.toString(),
@@ -218,7 +219,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 
     const estadosPermitidos: string[] = [EstadoPedido.EN_PREPARACION, EstadoPedido.SERVIDO]
-    if (!estadosPermitidos.includes(pedido.estado_pedido!)) {
+    if (!estadosPermitidos.includes(pedido.estado_pedido?.toUpperCase() ?? "")) {
       return NextResponse.json(
         { error: `No se puede cancelar un pedido en estado ${pedido.estado_pedido}` },
         { status: 400 }

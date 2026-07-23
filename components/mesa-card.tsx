@@ -248,7 +248,7 @@ export function MesaCard({ mesa, onUpdate, isAdmin }: MesaCardProps) {
         {pedidoActual ? (
           <>
             {/* Si existe pedido, mostrar botón según estado */}
-            {pedidoActual.estado === "Pagado" ? (
+            {pedidoActual.estado?.toUpperCase() === "PAGADO" ? (
               // Botón de liberar mesa cuando pedido está pagado
               <Button 
                 onClick={liberarMesa}

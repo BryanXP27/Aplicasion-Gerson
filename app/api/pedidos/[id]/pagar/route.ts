@@ -29,7 +29,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
     }
 
-    if (pedido.estado_pedido === EstadoPedido.PAGADO) {
+    if (pedido.estado_pedido?.toUpperCase() === EstadoPedido.PAGADO) {
       return NextResponse.json({ error: "El pedido ya está pagado" }, { status: 400 })
     }
 

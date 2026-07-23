@@ -310,7 +310,7 @@ export function PedidoDetalleModal({ isOpen, onClose, pedidoId }: PedidoDetalleM
                 {imprimiendo ? "Reimprimiento..." : "Reimprimir Ticket"}
               </Button>
             )}
-            {pedido.estado === "Pagado" && (
+            {pedido.estado?.toUpperCase() === "PAGADO" && (
               <Button
                 onClick={marcarCompletadoYLiberar}
                 disabled={liberandoMesa}
@@ -319,7 +319,7 @@ export function PedidoDetalleModal({ isOpen, onClose, pedidoId }: PedidoDetalleM
                 {liberandoMesa ? "Procesando..." : "Completado y Liberar Mesa"}
               </Button>
             )}
-            {pedido.estado === "Completado" && (
+            {pedido.estado?.toUpperCase() === "COMPLETADO" && (
               <Button
                 onClick={liberarMesa}
                 disabled={liberandoMesa}
