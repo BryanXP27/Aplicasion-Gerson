@@ -237,7 +237,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 
     const estadosPermitidos: string[] = [EstadoPedido.EN_PREPARACION, EstadoPedido.EN_PROCESO, EstadoPedido.LISTO_PARA_RECOGER, EstadoPedido.SERVIDO]
-    if (!estadosPermitidos.includes(pedido.estado_pedido?.toUpperCase() ?? "")) {
+    const estadoActual = pedido.estado_pedido?.toUpperCase() ?? ""
+    if (!estadosPermitidos.includes(estadoActual) && estadoActual !== "") {
       return NextResponse.json(
         { error: `No se puede cancelar un pedido en estado ${pedido.estado_pedido}` },
         { status: 400 }

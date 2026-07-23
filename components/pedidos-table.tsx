@@ -268,8 +268,8 @@ export function PedidosTable() {
                   </td>
                   <td className="px-6 py-4 text-[#EAEAEA]">{pedido.mesero}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${estadoColors[pedido.estado]}`}>
-                      {estadoLabels[pedido.estado]}
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${estadoColors[pedido.estado] || "bg-gray-500 bg-opacity-20 text-gray-400"}`}>
+                      {estadoLabels[pedido.estado] || pedido.estado || "Desconocido"}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-[#EAEAEA] font-semibold">
@@ -359,8 +359,8 @@ export function PedidosTable() {
                   <p className="text-[#C9A227] text-sm font-semibold">Pedido #{pedido.id}</p>
                   <p className="text-[#EAEAEA] text-xs">{new Date(pedido.fecha).toLocaleString()}</p>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${estadoColors[pedido.estado]}`}>
-                  {estadoLabels[pedido.estado]}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${estadoColors[pedido.estado] || "bg-gray-500 bg-opacity-20 text-gray-400"}`}>
+                  {estadoLabels[pedido.estado] || pedido.estado || "Desconocido"}
                 </span>
               </div>
 
