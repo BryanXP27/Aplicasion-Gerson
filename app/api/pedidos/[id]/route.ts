@@ -102,10 +102,28 @@ export async function PUT(
     // CASO 1: Solo actualizar estado
     if (body.estado && !body.detalles) {
       const nuevoEstado = body.estado.toUpperCase()
+
+      const pedido = await prisma.pedidos.findUnique({
+        where: { id_pedido: pedidoId },
+        include: { mesas: true },
+      })
+
+      if (!pedido) {
+        return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
+      }
+
       const pedidoActualizado = await prisma.pedidos.update({
         where: { id_pedido: pedidoId },
         data: { estado_pedido: nuevoEstado },
       })
+
+      if (["COMPLETADO", "CANCELADO"].includes(nuevoEstado) && pedido.mesas.numero_mesa > 0) {
+        await prisma.mesas.update({
+          where: { id_mesa: pedido.id_mesa },
+          data: { estado_mesa: "Libre" },
+        })
+      }
+
       return NextResponse.json({
         id: pedidoActualizado.id_pedido.toString(),
         estado: pedidoActualizado.estado_pedido,

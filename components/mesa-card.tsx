@@ -134,6 +134,36 @@ export function MesaCard({ mesa, onUpdate, isAdmin }: MesaCardProps) {
     }
   }
 
+  /** Fuerza la liberación de la mesa cuando no hay pedido activo */
+  const forzarLiberarMesa = async () => {
+    const confirmacion = confirm(
+      `¿Está seguro que desea liberar la Mesa ${mesa.numero}? No hay pedidos activos asociados.`
+    )
+    if (!confirmacion) return
+
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/mesas/${mesa.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: "Libre" })
+      })
+
+      if (res.ok) {
+        alert("Mesa liberada exitosamente")
+        onUpdate()
+      } else {
+        const error = await res.json()
+        alert(error.error || "Error al liberar la mesa")
+      }
+    } catch (error) {
+      console.error("Error liberando mesa:", error)
+      alert("Error al liberar la mesa")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   /** 
    * Callback cuando se crea o actualiza un pedido exitosamente
    * Cierra el modal, refresca el pedido y actualiza la lista
@@ -271,15 +301,29 @@ export function MesaCard({ mesa, onUpdate, isAdmin }: MesaCardProps) {
             )}
           </>
         ) : (
-          // Si no hay pedido, mostrar botón para crear uno (solo si mesa está libre)
-          <Button 
-            onClick={() => setShowPedidoDialog(true)} 
-            className="w-full bg-[#C9A227] hover:bg-[#a88820] text-[#1C1C1C] text-xs md:text-sm py-2 md:py-2"
-            disabled={mesa.estado.toLowerCase() !== "libre" || loading}
-          >
-            <ShoppingCart className="w-3 md:w-4 h-3 md:h-4 mr-1" />
-            Nuevo Pedido
-          </Button>
+          <>
+            {/* Si no hay pedido, mostrar botón para crear uno (solo si mesa está libre) */}
+            <Button 
+              onClick={() => setShowPedidoDialog(true)} 
+              className="w-full bg-[#C9A227] hover:bg-[#a88820] text-[#1C1C1C] text-xs md:text-sm py-2 md:py-2"
+              disabled={mesa.estado.toLowerCase() !== "libre" || loading}
+            >
+              <ShoppingCart className="w-3 md:w-4 h-3 md:h-4 mr-1" />
+              Nuevo Pedido
+            </Button>
+
+            {/* Botón para liberar mesa cuando está ocupada sin pedido activo */}
+            {mesa.estado.toLowerCase() !== "libre" && (
+              <Button 
+                onClick={forzarLiberarMesa}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm py-2 md:py-2"
+                disabled={loading}
+              >
+                <Unlock className="w-3 md:w-4 h-3 md:h-4 mr-1" />
+                Liberar Mesa
+              </Button>
+            )}
+          </>
         )}
 
         {/* Botón de eliminación (solo visible para admins) */}
