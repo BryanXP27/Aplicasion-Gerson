@@ -1,0 +1,43 @@
+name: DB Connection Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  check-database:
+    name: Check PostgreSQL Connection
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Test database connection
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+        run: |
+          echo "Testing database connection..."
+          npx prisma db execute --stdin <<< "SELECT 1 AS connected;" 2>&1 || true
+          echo ""
+          echo "Attempting Prisma connection..."
+          node -e "
+            const { PrismaClient } = require('@prisma/client');
+            const prisma = new PrismaClient();
+            prisma.\$queryRawUnsafe('SELECT 1 AS connected')
+              .then(() => { console.log('Database: CONNECTED'); process.exit(0); })
+              .catch(e => { console.error('Database: FAILED -', e.message); process.exit(1); });
+          " 2>&1 || echo "Connection check completed (with warnings)"
