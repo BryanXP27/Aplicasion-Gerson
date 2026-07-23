@@ -44,7 +44,7 @@ export function PedidosTable() {
     let filtered = pedidos
 
     if (estadoFilter !== "TODOS") {
-      filtered = filtered.filter((p) => p.estado === estadoFilter)
+      filtered = filtered.filter((p) => p.estado?.toUpperCase() === estadoFilter)
     }
 
     if (search) {
@@ -149,22 +149,36 @@ export function PedidosTable() {
   }
 
   const estadoColors: Record<string, string> = {
+    "EN_PREPARACION": "bg-blue-500 bg-opacity-20 text-blue-400",
     "En preparacion": "bg-blue-500 bg-opacity-20 text-blue-400",
+    "EN_PROCESO": "bg-yellow-500 bg-opacity-20 text-yellow-400",
     "En proceso": "bg-yellow-500 bg-opacity-20 text-yellow-400",
+    "LISTO_PARA_RECOGER": "bg-purple-500 bg-opacity-20 text-purple-400",
     "Listo para recoger": "bg-purple-500 bg-opacity-20 text-purple-400",
+    "SERVIDO": "bg-green-500 bg-opacity-20 text-green-400",
     "Servido": "bg-green-500 bg-opacity-20 text-green-400",
+    "PAGADO": "bg-[#C9A227] bg-opacity-20 text-[#C9A227]",
     "Pagado": "bg-[#C9A227] bg-opacity-20 text-[#C9A227]",
+    "COMPLETADO": "bg-gray-500 bg-opacity-20 text-gray-400",
     "Completado": "bg-gray-500 bg-opacity-20 text-gray-400",
+    "CANCELADO": "bg-red-500 bg-opacity-20 text-red-400",
     "Cancelado": "bg-red-500 bg-opacity-20 text-red-400",
   }
 
   const estadoLabels: Record<string, string> = {
+    "EN_PREPARACION": "En Preparación",
     "En preparacion": "En Preparación",
-    "En proceso": "En Proceso", 
+    "EN_PROCESO": "En Proceso", 
+    "En proceso": "En Proceso",
+    "LISTO_PARA_RECOGER": "Listo para Recoger",
     "Listo para recoger": "Listo para Recoger",
+    "SERVIDO": "Servido",
     "Servido": "Servido",
+    "PAGADO": "Pagado",
     "Pagado": "Pagado",
+    "COMPLETADO": "Completado",
     "Completado": "Completado",
+    "CANCELADO": "Cancelado",
     "Cancelado": "Cancelado",
   }
 
@@ -205,19 +219,19 @@ export function PedidosTable() {
             <SelectItem value="TODOS" className="text-[#EAEAEA]">
               Todos los Estados
             </SelectItem>
-            <SelectItem value="En preparacion" className="text-[#EAEAEA]">
+            <SelectItem value="EN_PREPARACION" className="text-[#EAEAEA]">
               En Preparación
             </SelectItem>
-            <SelectItem value="En proceso" className="text-[#EAEAEA]">
+            <SelectItem value="EN_PROCESO" className="text-[#EAEAEA]">
               En Proceso
             </SelectItem>
-            <SelectItem value="Listo para recoger" className="text-[#EAEAEA]">
+            <SelectItem value="LISTO_PARA_RECOGER" className="text-[#EAEAEA]">
               Listo para Recoger
             </SelectItem>
-            <SelectItem value="Servido" className="text-[#EAEAEA]">
+            <SelectItem value="SERVIDO" className="text-[#EAEAEA]">
               Servido
             </SelectItem>
-            <SelectItem value="Pagado" className="text-[#EAEAEA]">
+            <SelectItem value="PAGADO" className="text-[#EAEAEA]">
               Pagado
             </SelectItem>
             <SelectItem value="Completado" className="text-[#EAEAEA]">

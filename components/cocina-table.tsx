@@ -108,14 +108,15 @@ export function CocinaTable() {
   }
 
   const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case "En preparacion":
+    const upper = estado?.toUpperCase()
+    switch (upper) {
+      case "EN_PREPARACION":
         return "bg-yellow-500 bg-opacity-20 text-yellow-400"
-      case "En proceso":
+      case "EN_PROCESO":
         return "bg-blue-500 bg-opacity-20 text-blue-400"
-      case "Listo para recoger":
+      case "LISTO_PARA_RECOGER":
         return "bg-green-500 bg-opacity-20 text-green-400"
-      case "Servido":
+      case "SERVIDO":
         return "bg-purple-500 bg-opacity-20 text-purple-400"
       default:
         return "bg-gray-500 bg-opacity-20 text-gray-400"
