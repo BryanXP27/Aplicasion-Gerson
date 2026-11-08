@@ -57,7 +57,7 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
-    "@next/swc-wasm-nodejs": "^15.5.4",
+    "@next/swc-wasm-nodejs": "^16.4.5",
     "@types/bcryptjs": "^2.4.6",
     "@types/jest": "^30.0.0",
     "@types/node": "24.6.2",
