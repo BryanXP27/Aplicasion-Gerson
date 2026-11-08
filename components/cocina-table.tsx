@@ -19,6 +19,7 @@ interface Pedido {
   id: string
   fecha: string
   mesa: {
+    id: string
     numero: number
   }
   mesero: string
@@ -88,7 +89,7 @@ export function CocinaTable() {
     }
   }
 
-  const cambiarEstado = async (pedidoId: string, nuevoEstado: string) => {
+const cambiarEstado = async (pedidoId: string, nuevoEstado: string) => {
     try {
       const res = await fetch(`/api/pedidos/${pedidoId}`, {
         method: "PUT",
@@ -105,7 +106,7 @@ export function CocinaTable() {
     } catch (error) {
       console.error("Error actualizando pedido:", error)
     }
-  }
+}
 
   const getEstadoColor = (estado: string) => {
     const upper = estado?.toUpperCase()

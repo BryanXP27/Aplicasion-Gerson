@@ -1,114 +1,113 @@
-/**
- * Prometheus Metrics Middleware
- * Expone métricas de la aplicación en /api/metrics
- */
+const counters: Record<string, number> = {}
+const gauges: Record<string, number> = {}
+const histograms: Record<string, number[]> = {}
 
-import pino from 'pino';
+const startTime = Date.now()
 
-const logger = pino();
+function storeKey(name: string, labels: Record<string, string>): string {
+  return name + "|" + Object.entries(labels).sort().map(([k, v]) => `${k}=${v}`).join(",")
+}
 
-// Métricas en memoria (simplificadas para demo)
-const metrics = {
-  requests: {
-    total: 0,
-    by_method: {} as Record<string, number>,
-    by_status: {} as Record<number, number>,
-    errors: 0,
-  },
-  database: {
-    queries: 0,
-    errors: 0,
-    latency_ms: 0,
-  },
-  memory: {
-    usage_mb: 0,
-  },
-};
+function quoteLabels(raw: string): string {
+  if (!raw) return ""
+  return raw.replace(/(^|,)([^=]+)=([^,]*)/g, (_, pre, k, v) => `${pre}${k}="${v}"`)
+}
 
-export function metricsMiddleware(
-  req: any,
-  res: any,
-  next: any
-) {
-  // Track request start time
-  const startTime = Date.now();
+export function incrementCounter(name: string, labels: Record<string, string> = {}, value = 1) {
+  const key = storeKey(name, labels)
+  counters[key] = (counters[key] || 0) + value
+}
 
-  // Increment request counter
-  metrics.requests.total++;
-  metrics.requests.by_method[req.method] =
-    (metrics.requests.by_method[req.method] || 0) + 1;
+export function setGauge(name: string, value: number, labels: Record<string, string> = {}) {
+  const key = storeKey(name, labels)
+  gauges[key] = value
+}
 
-  // Original res.json function
-  const originalJson = res.json;
+export function observeHistogram(name: string, value: number, labels: Record<string, string> = {}) {
+  const key = storeKey(name, labels)
+  if (!histograms[key]) histograms[key] = []
+  histograms[key].push(value)
+  if (histograms[key].length > 1000) histograms[key].shift()
+}
 
-  res.json = function (data: any) {
-    const statusCode = res.statusCode;
-    metrics.requests.by_status[statusCode] =
-      (metrics.requests.by_status[statusCode] || 0) + 1;
+function escapeLabel(v: string) {
+  return v.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n")
+}
 
-    if (statusCode >= 400) {
-      metrics.requests.errors++;
-    }
+function formatMapLabels(labels: Record<string, string>): string {
+  const entries = Object.entries(labels)
+  if (entries.length === 0) return ""
+  return "{" + entries.map(([k, v]) => `${k}="${escapeLabel(v)}"`).join(",") + "}"
+}
 
-    logger.info({
-      path: req.path,
-      method: req.method,
-      status: statusCode,
-      duration_ms: Date.now() - startTime,
-    });
+const bucketBounds = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
 
-    return originalJson.call(this, data);
-  };
+function formatHistogram(name: string, key: string, values: number[]): string {
+  const prefix = name + "_bucket"
+  const total = values.length
+  const sorted = [...values].sort((a, b) => a - b)
+  const rawLabels = key.split("|")[1] || ""
+  const qLabels = quoteLabels(rawLabels)
+  const sep = qLabels ? "," : ""
+  let lines = ""
+  let le = 0
+  for (const bound of bucketBounds) {
+    while (le < total && sorted[le] <= bound) le++
+    lines += `${prefix}{${qLabels}${sep}le="${bound}"} ${le}\n`
+  }
+  lines += `${prefix}{${qLabels}${sep}le="+Inf"} ${total}\n`
+  lines += `${name}_count{${qLabels}} ${total}\n`
+  const sum = values.reduce((a, b) => a + b, 0)
+  lines += `${name}_sum{${qLabels}} ${sum}\n`
+  return lines
+}
 
-  next();
+function emitMetric(name: string, rawLabels: string, value: number): string {
+  const qLabels = quoteLabels(rawLabels)
+  return `${name}${qLabels ? "{" + qLabels + "}" : ""} ${value}`
+}
+
+export function generateMetrics(): string {
+  const lines: string[] = []
+
+  lines.push("# HELP uptime_seconds Application uptime")
+  lines.push("# TYPE uptime_seconds gauge")
+  setGauge("uptime_seconds", (Date.now() - startTime) / 1000)
+
+  lines.push("# HELP nodejs_memory_bytes Node.js memory usage")
+  lines.push("# TYPE nodejs_memory_bytes gauge")
+  const mem = process.memoryUsage()
+  lines.push(`nodejs_memory_bytes{type="rss"} ${mem.rss}`)
+  lines.push(`nodejs_memory_bytes{type="heapTotal"} ${mem.heapTotal}`)
+  lines.push(`nodejs_memory_bytes{type="heapUsed"} ${mem.heapUsed}`)
+  lines.push(`nodejs_memory_bytes{type="external"} ${mem.external}`)
+
+  for (const [key, val] of Object.entries(counters)) {
+    const [name, ...labelParts] = key.split("|")
+    const labels = labelParts.join("|")
+    lines.push(`# HELP ${name} Counter metric`)
+    lines.push(`# TYPE ${name} counter`)
+    lines.push(emitMetric(name, labels, val))
+  }
+
+  for (const [key, val] of Object.entries(gauges)) {
+    const [name, ...labelParts] = key.split("|")
+    const labels = labelParts.join("|")
+    lines.push(`# HELP ${name} Gauge metric`)
+    lines.push(`# TYPE ${name} gauge`)
+    lines.push(emitMetric(name, labels, val))
+  }
+
+  for (const [key, values] of Object.entries(histograms)) {
+    const [name] = key.split("|")
+    lines.push(`# HELP ${name} Histogram metric`)
+    lines.push(`# TYPE ${name} histogram`)
+    lines.push(formatHistogram(name, key, values))
+  }
+
+  return lines.join("\n") + "\n"
 }
 
 export function formatPrometheusMetrics(): string {
-  const now = Date.now();
-  let output = '';
-
-  // HELP and TYPE lines
-  output += '# HELP http_requests_total Total HTTP requests\n';
-  output += '# TYPE http_requests_total counter\n';
-  output += `http_requests_total{job="backend"} ${metrics.requests.total}\n`;
-
-  output += '# HELP http_requests_errors Total HTTP errors\n';
-  output += '# TYPE http_requests_errors counter\n';
-  output += `http_requests_errors{job="backend"} ${metrics.requests.errors}\n`;
-
-  // By method
-  output += '# HELP http_requests_by_method Requests by method\n';
-  output += '# TYPE http_requests_by_method gauge\n';
-  Object.entries(metrics.requests.by_method).forEach(([method, count]) => {
-    output += `http_requests_by_method{method="${method}"} ${count}\n`;
-  });
-
-  // By status code
-  output += '# HELP http_requests_by_status Requests by status code\n';
-  output += '# TYPE http_requests_by_status gauge\n';
-  Object.entries(metrics.requests.by_status).forEach(([status, count]) => {
-    output += `http_requests_by_status{status="${status}"} ${count}\n`;
-  });
-
-  // Database metrics
-  output += '# HELP db_queries_total Total database queries\n';
-  output += '# TYPE db_queries_total counter\n';
-  output += `db_queries_total{job="backend"} ${metrics.database.queries}\n`;
-
-  // Memory
-  output += '# HELP process_memory_bytes Process memory usage\n';
-  output += '# TYPE process_memory_bytes gauge\n';
-  const memUsage = process.memoryUsage();
-  output += `process_memory_bytes{type="heapUsed"} ${memUsage.heapUsed}\n`;
-  output += `process_memory_bytes{type="heapTotal"} ${memUsage.heapTotal}\n`;
-  output += `process_memory_bytes{type="external"} ${memUsage.external}\n`;
-
-  // Uptime
-  output += '# HELP process_uptime_seconds Process uptime\n';
-  output += '# TYPE process_uptime_seconds gauge\n';
-  output += `process_uptime_seconds ${process.uptime()}\n`;
-
-  return output;
+  return generateMetrics()
 }
-
-export const metricsStore = metrics;

@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Lima"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "security"
+    assignees:
+      - "BryanXP27"
+    reviewers:
+      - "BryanXP27"
+    versioning-strategy: increase
+    commit-message:
+      prefix: "fix"
+      prefix-development: "chore"
+      include: "scope"
+    ignore:
+      - dependency-name: "@types/*"
+        update-types: ["version-update:semver-patch"]
+    allow:
+      - dependency-type: "direct"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Lima"
+    labels:
+      - "dependencies"
+      - "github-actions"

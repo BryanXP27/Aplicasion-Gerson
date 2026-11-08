@@ -1,6 +1,8 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/middleware-auth"
+import { withMetrics } from "@/lib/with-metrics"
+import { incrementCounter, setGauge } from "@/lib/metrics"
 
 export const dynamic = "force-dynamic"
 
@@ -20,7 +22,7 @@ function getTodayRangeInLima() {
   return { start, end, today }
 }
 
-export async function GET() {
+async function handler(request: NextRequest) {
   const auth = await requireAuth(["Admin", "Cajero"])
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -31,7 +33,7 @@ export async function GET() {
     const sevenDaysFromNow = new Date(start)
     sevenDaysFromNow.setUTCDate(sevenDaysFromNow.getUTCDate() + 7)
 
-    // Usar Promise.allSettled para manejar fallos parciales de conexión
+    // Agregar queries de métricas de negocio
     const results = await Promise.allSettled([
       prisma.ingresos.aggregate({
         where: {
@@ -67,13 +69,38 @@ export async function GET() {
           stock_min_insu: true,
         },
       }),
+      // Métricas adicionales para monitoreo
+      prisma.pedidos.groupBy({
+        by: ["estado_pedido"],
+        _count: { id_pedido: true },
+        where: {
+          fecha_pedido: { gte: start, lt: end },
+        },
+      }),
+      prisma.mesas.count({
+        where: { estado_mesa: "Ocupada", numero_mesa: { gt: 0 } },
+      }),
+      prisma.mesas.count({
+        where: { estado_mesa: "Libre", numero_mesa: { gt: 0 } },
+      }),
+      prisma.pedidos.aggregate({
+        _sum: { total: true },
+        where: {
+          estado_pedido: "PAGADO",
+          fecha_pedido: { gte: start, lt: end },
+        },
+      }),
     ])
 
-    // Extraer resultados con valores por defecto en caso de error
+    // Extraer resultados
     const ventasResult = results[0].status === "fulfilled" ? results[0].value : { _sum: { monto: 0 } }
     const pedidosActivosResult = results[1].status === "fulfilled" ? results[1].value : 0
     const insumosVencerResult = results[2].status === "fulfilled" ? results[2].value : 0
     const insumosResult = results[3].status === "fulfilled" ? results[3].value : []
+    const pedidosPorEstado = results[4].status === "fulfilled" ? results[4].value : []
+    const mesasOcupadas = results[5].status === "fulfilled" ? results[5].value : 0
+    const mesasLibres = results[6].status === "fulfilled" ? results[6].value : 0
+    const ingresosHoy = results[7].status === "fulfilled" ? results[7].value : { _sum: { total: 0 } }
 
     const insumosBajoStock = (insumosResult as any[]).filter((insumo) => {
       const stockActual = Number(insumo.stock_act_insu ?? 0)
@@ -81,8 +108,24 @@ export async function GET() {
       return stockActual <= stockMinimo
     }).length
 
+    // Grabar métricas de negocio
+    const ventasHoy = Number(ventasResult._sum?.monto ?? 0)
+    setGauge("ingresos_totales", ventasHoy, { periodo: "hoy" })
+    setGauge("mesas_ocupadas", mesasOcupadas)
+    setGauge("mesas_libres", mesasLibres)
+    setGauge("pedidos_activos", pedidosActivosResult)
+    setGauge("insumos_bajo_stock", insumosBajoStock)
+    setGauge("insumos_por_vencer", insumosVencerResult)
+
+    const totalIngresos = Number((ingresosHoy as any)._sum?.total ?? 0)
+    incrementCounter("ingresos_monetarios", { periodo: "hoy" }, Math.round(totalIngresos * 100))
+
+    for (const grupo of (pedidosPorEstado as Array<{ estado_pedido: string; _count: { id_pedido: number } }>)) {
+      setGauge("pedidos_por_estado", grupo._count.id_pedido, { estado: grupo.estado_pedido })
+    }
+
     return NextResponse.json({
-      ventasHoy: Number(ventasResult._sum?.monto ?? 0),
+      ventasHoy,
       pedidosActivos: pedidosActivosResult,
       insumosVencer: insumosVencerResult,
       insumosBajoStock,
@@ -90,7 +133,6 @@ export async function GET() {
     })
   } catch (error) {
     console.error("Error obteniendo dashboard:", error)
-    // Retornar valores por defecto en lugar de error para mejor UX
     return NextResponse.json({
       ventasHoy: 0,
       pedidosActivos: 0,
@@ -100,3 +142,5 @@ export async function GET() {
     })
   }
 }
+
+export const GET = withMetrics(handler, "dashboard")

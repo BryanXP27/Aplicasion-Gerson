@@ -229,7 +229,7 @@ export function PedidoMesa({
 
     setLoading(true)
     try {
-      const url = "/api/pedidos"
+      const url = pedidoExistente ? `/api/pedidos/${pedidoExistente.id}` : "/api/pedidos"
       
       const method = pedidoExistente ? "PUT" : "POST"
 

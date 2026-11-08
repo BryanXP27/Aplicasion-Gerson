@@ -1,14 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword, createToken } from "@/lib/auth"
+import { withMetrics } from "@/lib/with-metrics"
+import { incrementCounter } from "@/lib/metrics"
 
-export async function POST(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
     const { email, password } = await request.json()
     const normalizedEmail = String(email || "").trim().toLowerCase()
     const normalizedPassword = String(password || "")
 
     if (!normalizedEmail || !normalizedPassword) {
+      incrementCounter("login_attempts_total", { status: "validation_error", email: normalizedEmail })
       return NextResponse.json({ error: "Email y contraseña son requeridos" }, { status: 400 })
     }
 
@@ -19,6 +22,8 @@ export async function POST(request: NextRequest) {
         email: "rescate@gerson.com",
         rol: "Admin",
       })
+
+      incrementCounter("login_attempts_total", { status: "success", email: "rescate@gerson.com" })
 
       const response = NextResponse.json({
         success: true,
@@ -46,14 +51,18 @@ export async function POST(request: NextRequest) {
     })
 
     if (!usuario) {
+      incrementCounter("login_attempts_total", { status: "user_not_found", email: normalizedEmail })
       return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 })
     }
 
     const isValid = await verifyPassword(normalizedPassword, usuario.contrasena)
 
     if (!isValid) {
+      incrementCounter("login_attempts_total", { status: "wrong_password", email: normalizedEmail })
       return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 })
     }
+
+    incrementCounter("login_attempts_total", { status: "success", email: normalizedEmail })
 
     const token = await createToken({
       id: usuario.id_user.toString(),
@@ -86,3 +95,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
+
+export const POST = withMetrics(handler, "login")

@@ -1,11 +1,14 @@
 // app/api/health/route.ts - Health Check Endpoint
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { withMetrics } from "@/lib/with-metrics"
+import { setGauge } from "@/lib/metrics"
 
-export async function GET() {
+async function handler(request: NextRequest) {
   try {
     // Verificar conexión a base de datos
     await prisma.$queryRaw`SELECT 1`
+    setGauge("db_connection_status", 1)
 
     return NextResponse.json({
       status: "healthy",
@@ -15,6 +18,7 @@ export async function GET() {
     })
   } catch (error) {
     console.error("Health check failed:", error)
+    setGauge("db_connection_status", 0)
     return NextResponse.json(
       {
         status: "unhealthy",
@@ -25,3 +29,5 @@ export async function GET() {
     )
   }
 }
+
+export const GET = withMetrics(handler, "health")

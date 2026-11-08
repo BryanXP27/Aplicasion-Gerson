@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth, Rol, EstadoMesa } from "@/lib/middleware-auth"
+import { withMetrics } from "@/lib/with-metrics"
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   const auth = await requireAuth(
     { url: request.url, method: request.method },
     [Rol.ADMIN, Rol.MESERO, Rol.CAJERO, Rol.COCINERO]
@@ -31,6 +32,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Error al obtener mesas" }, { status: 500 })
   }
 }
+
+export const GET = withMetrics(getHandler, "mesas")
 
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(

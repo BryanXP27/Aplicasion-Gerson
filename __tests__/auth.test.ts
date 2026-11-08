@@ -1,72 +1,57 @@
-/**
- * Test: Authentication Utilities
- * Verifica funciones de autenticación y validación
- */
+import { hashPassword, verifyPassword, createToken, verifyToken, JWTPayload } from '../lib/auth';
 
-describe('Authentication Utils', () => {
-  describe('JWT Token Validation', () => {
-    it('should validate token format', () => {
-      const validToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-      const parts = validToken.split('.');
-      expect(parts).toHaveLength(3);
-    });
-
-    it('should identify invalid token', () => {
-      const invalidToken = 'invalid.token';
-      const parts = invalidToken.split('.');
-      expect(parts.length).toBeLessThan(3);
-    });
-  });
-
+describe('Auth Utilities (lib/auth.ts)', () => {
   describe('Password Hashing', () => {
-    it('should hash passwords securely', async () => {
-      // Simular bcryptjs
-      const password = 'TestPassword123!';
-      const saltRounds = 10;
-      expect(password.length).toBeGreaterThanOrEqual(8);
-    });
+    it('should hash a password and verify it correctly', async () => {
+      const password = 'mySuperSecretPassword123!';
+      
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
+      
+      // The hash should not be the plain text password
+      expect(hashedPassword).not.toBe(password);
+      expect(hashedPassword).toBeDefined();
 
-    it('should validate password requirements', () => {
-      const validatePassword = (pwd: string) => {
-        return pwd.length >= 8 && /[A-Z]/.test(pwd) && /[0-9]/.test(pwd);
-      };
+      // Verify with correct password
+      const isMatch = await verifyPassword(password, hashedPassword);
+      expect(isMatch).toBe(true);
 
-      expect(validatePassword('Test1234')).toBe(true);
-      expect(validatePassword('weak')).toBe(false);
+      // Verify with incorrect password
+      const isWrongMatch = await verifyPassword('wrongPassword', hashedPassword);
+      expect(isWrongMatch).toBe(false);
     });
   });
 
-  describe('User Roles (RBAC)', () => {
-    enum UserRole {
-      ADMIN = 'ADMIN',
-      MESERO = 'MESERO',
-      COCINERO = 'COCINERO',
-      CAJERO = 'CAJERO',
-    }
-
-    const hasPermission = (role: UserRole, action: string): boolean => {
-      const permissions: Record<UserRole, string[]> = {
-        [UserRole.ADMIN]: ['read', 'write', 'delete', 'manage'],
-        [UserRole.MESERO]: ['read', 'create:order'],
-        [UserRole.COCINERO]: ['read', 'update:order'],
-        [UserRole.CAJERO]: ['read', 'update:payment'],
-      };
-      return permissions[role]?.includes(action) ?? false;
+  describe('JWT Token Management', () => {
+    const mockPayload: JWTPayload = {
+      id: '1',
+      nombre: 'Admin User',
+      email: 'admin@example.com',
+      rol: 'ADMIN'
     };
 
-    it('ADMIN should have full permissions', () => {
-      expect(hasPermission(UserRole.ADMIN, 'delete')).toBe(true);
-      expect(hasPermission(UserRole.ADMIN, 'manage')).toBe(true);
+    it('should create and verify a valid token', async () => {
+      // Create token
+      const token = await createToken(mockPayload);
+      expect(typeof token).toBe('string');
+      
+      const parts = token.split('.');
+      expect(parts).toHaveLength(3); // Header.Payload.Signature
+
+      // Verify token
+      const decodedPayload = await verifyToken(token);
+      expect(decodedPayload).toBeDefined();
+      expect(decodedPayload?.id).toBe(mockPayload.id);
+      expect(decodedPayload?.nombre).toBe(mockPayload.nombre);
+      expect(decodedPayload?.email).toBe(mockPayload.email);
+      expect(decodedPayload?.rol).toBe(mockPayload.rol);
     });
 
-    it('MESERO should only create orders', () => {
-      expect(hasPermission(UserRole.MESERO, 'create:order')).toBe(true);
-      expect(hasPermission(UserRole.MESERO, 'delete')).toBe(false);
-    });
-
-    it('COCINERO should only update orders', () => {
-      expect(hasPermission(UserRole.COCINERO, 'update:order')).toBe(true);
-      expect(hasPermission(UserRole.COCINERO, 'create:order')).toBe(false);
+    it('should return null for an invalid token', async () => {
+      const invalidToken = 'this.is.not.a.valid.token';
+      const decodedPayload = await verifyToken(invalidToken);
+      
+      expect(decodedPayload).toBeNull();
     });
   });
 });

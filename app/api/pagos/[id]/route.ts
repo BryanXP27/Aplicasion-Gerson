@@ -52,10 +52,17 @@ export async function POST(
       return NextResponse.json({ error: "El total del pago no coincide con el pedido" }, { status: 400 })
     }
 
-    const pedidoActualizado = await prisma.pedidos.update({
-      where: { id_pedido: parseInt(id) },
-      data: { estado_pedido: EstadoPedido.PAGADO },
+const pedidoActualizado = await prisma.pedidos.update({
+        where: { id_pedido: parseInt(id) },
+        data: { estado_pedido: EstadoPedido.PAGADO },
     })
+
+    if (pedidoExistente.id_mesa > 0) {
+        await prisma.mesas.update({
+            where: { id_mesa: pedidoExistente.id_mesa },
+            data: { estado_mesa: "Libre" },
+        })
+    }
 
     await prisma.ingresos.create({
       data: {

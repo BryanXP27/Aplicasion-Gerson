@@ -1,0 +1,66 @@
+groups:
+  - name: polleria-app
+    interval: 30s
+    rules:
+      - alert: AppDown
+        expr: uptime_seconds < 30
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "La aplicación Pollería no responde"
+          description: "La aplicación ha estado caída por más de 1 minuto."
+
+      - alert: HighMemoryUsage
+        expr: nodejs_memory_bytes{type="heapUsed"} > 500 * 1024 * 1024
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso alto de memoria Heap (>500MB)"
+          description: "El heap de Node.js ha superado los 500MB."
+
+      - alert: DatabaseDown
+        expr: db_connection_status == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Base de datos desconectada"
+          description: "No se puede conectar a PostgreSQL."
+
+      - alert: HighErrorRate
+        expr: rate(http_errors_total{code="500"}[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tasa alta de errores 500"
+          description: "Más de 0.1 errores 500 por segundo en los últimos 5 minutos."
+
+      - alert: SlowResponses
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Respuestas lentas (p95 > 5s)"
+          description: "El percentil 95 de latencia supera los 5 segundos."
+
+      - alert: LowStock
+        expr: insumos_bajo_stock > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Insumos con stock bajo"
+          description: "Hay {{ $value }} insumos por debajo del stock mínimo."
+
+      - alert: FailedLogins
+        expr: increase(login_attempts_total{status!~"success|validation_error"}[5m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Múltiples intentos de login fallidos"
+          description: "Más de 5 intentos fallidos en 5 minutos."

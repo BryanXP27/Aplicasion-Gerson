@@ -1,0 +1,10 @@
+apiVersion: 1
+
+contactPoints:
+  - name: Email Alerts
+    receivers:
+      - uid: email-receiver
+        type: email
+        settings:
+          addresses: "admin@polleria.com"
+        disableResolveMessage: false

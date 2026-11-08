@@ -1,0 +1,167 @@
+{
+  "title": "Restaurante - Dashboard General",
+  "uid": "restaurant-general",
+  "version": 1,
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "tags": ["polleria", "restaurant"],
+  "panels": [
+    {
+      "title": "Ventas Hoy",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "ingresos_totales{periodo=\"hoy\"}",
+          "legendFormat": "S/."
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currency-PEN",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 100 },
+            { "color": "green", "value": 500 }
+          ]}
+        }
+      }
+    },
+    {
+      "title": "Pedidos Activos",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 0 },
+      "targets": [
+        { "expr": "pedidos_activos", "legendFormat": "Activos" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 10 },
+            { "color": "red", "value": 20 }
+          ]}
+        }
+      }
+    },
+    {
+      "title": "Mesas Ocupadas",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 0 },
+      "targets": [
+        { "expr": "mesas_ocupadas", "legendFormat": "Ocupadas" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 5 },
+            { "color": "red", "value": 10 }
+          ]}
+        }
+      }
+    },
+    {
+      "title": "Mesas Libres",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 0 },
+      "targets": [
+        { "expr": "mesas_libres", "legendFormat": "Libres" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 2 },
+            { "color": "green", "value": 5 }
+          ]}
+        }
+      }
+    },
+    {
+      "title": "Pedidos por Estado",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 4 },
+      "targets": [
+        { "expr": "pedidos_por_estado", "legendFormat": "{{estado}}" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none" }
+      }
+    },
+    {
+      "title": "Ingresos del Día",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 4 },
+      "targets": [
+        { "expr": "increase(ingresos_monetarios{periodo=\"hoy\"}[5m])", "legendFormat": "S/." }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "currency-PEN" }
+      }
+    },
+    {
+      "title": "Insumos Bajo Stock",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "insumos_bajo_stock", "legendFormat": "Alertas" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 3 },
+            { "color": "red", "value": 5 }
+          ]}
+        }
+      }
+    },
+    {
+      "title": "Insumos por Vencer",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 12 },
+      "targets": [
+        { "expr": "insumos_por_vencer", "legendFormat": "Próximos 7 días" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 5 },
+            { "color": "red", "value": 10 }
+          ]}
+        }
+      }
+    },
+    {
+      "title": "Tasa de Conversión (Pagados/Total)",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 12 },
+      "targets": [
+        {
+          "expr": "ingresos_totales{periodo=\"hoy\"} / (ingresos_totales{periodo=\"hoy\"} + 1) * 100",
+          "legendFormat": "%"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 50 },
+            { "color": "green", "value": 80 }
+          ]}
+        }
+      }
+    }
+  ]
+}

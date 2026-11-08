@@ -19,7 +19,7 @@ export async function GET(
       where: {
         id_mesa: parseInt(mesaId),
         estado_pedido: {
-          notIn: ["COMPLETADO", "Completado", "CANCELADO", "Cancelado"]
+          notIn: ["COMPLETADO", "Completado", "CANCELADO", "Cancelado", "SERVIDO", "PAGADO"]
         }
       },
       include: {

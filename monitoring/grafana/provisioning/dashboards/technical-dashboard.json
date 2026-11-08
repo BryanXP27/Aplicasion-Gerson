@@ -1,0 +1,105 @@
+{
+  "title": "Técnico - Rendimiento API & Sistema",
+  "uid": "technical-performance",
+  "version": 1,
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "tags": ["polleria", "technical"],
+  "panels": [
+    {
+      "title": "Uptime",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "uptime_seconds", "legendFormat": "Uptime" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "title": "Estado BD",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 0 },
+      "targets": [
+        { "expr": "db_connection_status", "legendFormat": "Conectada" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "green", "value": 1 }
+          ]}
+        }
+      }
+    },
+    {
+      "title": "Memoria RSS",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 0 },
+      "targets": [
+        { "expr": "nodejs_memory_bytes{type=\"rss\"}", "legendFormat": "RSS" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "min": 0 }
+      }
+    },
+    {
+      "title": "Heap Usado",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 0 },
+      "targets": [
+        { "expr": "nodejs_memory_bytes{type=\"heapUsed\"}", "legendFormat": "Heap" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "min": 0 }
+      }
+    },
+    {
+      "title": "Requests por Ruta",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 4 },
+      "targets": [
+        { "expr": "topk(10, http_requests_total)", "legendFormat": "{{route}}" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none" }
+      }
+    },
+    {
+      "title": "Latencia de API (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 4 },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route))", "legendFormat": "{{route}}" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "title": "Errores HTTP",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "increase(http_errors_total[5m])", "legendFormat": "{{route}} ({{code}})" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none" }
+      }
+    },
+    {
+      "title": "Intentos de Login",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 12 },
+      "targets": [
+        { "expr": "increase(login_attempts_total{status=\"success\"}[5m])", "legendFormat": "Éxito" },
+        { "expr": "increase(login_attempts_total{status=~\"user_not_found|wrong_password|validation_error\"}[5m])", "legendFormat": "Fallidos" }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "none" }
+      }
+    }
+  ]
+}

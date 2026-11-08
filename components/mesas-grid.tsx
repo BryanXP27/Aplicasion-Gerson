@@ -21,35 +21,13 @@ interface MesasGridProps {
 }
 
 export function MesasGrid({ userRole }: MesasGridProps) {
-  // ==========================================
-  // ESTADO LOCAL
-  // ==========================================
+  const [mesas, setMesas] = useState<Mesa[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const [mesas, setMesas] = useState<Mesa[]>([])        // Lista de mesas disponibles
-  const [loading, setLoading] = useState(true)          // Indica si se está cargando
-
-  // ==========================================
-  // EFECTOS
-  // ==========================================
-
-  // Cargar mesas cuando el componente se monta
-  useEffect(() => {
-    fetchMesas()
-  }, [])
-
-  // ==========================================
-  // FUNCIONES
-  // ==========================================
-
-  /** 
-   * Obtiene la lista de mesas desde la API
-   * Filtra la mesa especial con número -1 (usada para delivery/para llevar)
-   */
   const fetchMesas = async () => {
     try {
       const res = await fetch("/api/mesas")
       const data = await res.json()
-      // Filtrar mesas, ocultando la mesa especial (-1)
       const mesasFiltradas = data.filter((m: Mesa) => m.numero !== -1)
       setMesas(mesasFiltradas)
     } catch (error) {
@@ -58,6 +36,12 @@ export function MesasGrid({ userRole }: MesasGridProps) {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchMesas()
+    const interval = setInterval(fetchMesas, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   // ==========================================
   // RENDER

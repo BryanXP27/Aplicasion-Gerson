@@ -47,9 +47,11 @@ export function MesaCard({ mesa, onUpdate, isAdmin }: MesaCardProps) {
   // EFECTOS
   // ==========================================
 
-  // Verificar si existe un pedido activo cuando se monta o cambia el ID de la mesa
+  // Verificar si existe un pedido activo cuando se monta, cambia el ID de la mesa, o periódicamente para sincronización en tiempo real
   useEffect(() => {
     verificarPedidoActivo()
+    const interval = setInterval(verificarPedidoActivo, 3000)
+    return () => clearInterval(interval)
   }, [mesa.id])
 
   // ==========================================

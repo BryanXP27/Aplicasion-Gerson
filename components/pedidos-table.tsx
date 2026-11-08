@@ -100,17 +100,7 @@ export function PedidosTable() {
       })
 
       if (res.ok) {
-        // Si el estado es "Completado", liberar la mesa también
-        if (nuevoEstado === "Completado") {
-          if (pedido.mesa) {
-            await fetch(`/api/mesas/${pedido.mesa.id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ estado: "libre" }),
-            })
-          }
-        }
-        fetchPedidos() // Recargar la lista
+        fetchPedidos()
       } else {
         console.error("Error actualizando pedido")
       }
