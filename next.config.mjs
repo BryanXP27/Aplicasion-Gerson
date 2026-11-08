@@ -1,5 +1,7 @@
 import path from 'path';
 
+const __dirname = path.dirname(path.fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {

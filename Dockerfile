@@ -14,6 +14,8 @@ RUN npx prisma generate
 # Usar DATABASE_URL de build si no está definida, para que prisma generate funcione
 ARG DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build?schema=public
 ENV DATABASE_URL=${DATABASE_URL}
+# Instalar OpenSSL requerido por Prisma en Alpine
+RUN apk add --no-cache openssl
 RUN npm run build && npm prune --production
 
 # ==================== STAGE 3: PRODUCTION RUNTIME ====================
@@ -22,6 +24,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 # Cloud Run usa el puerto 8080 por defecto, pero se puede sobrescribir con PORT
 ENV PORT=8080
+
+# Instalar OpenSSL en runtime también
+RUN apk add --no-cache openssl
 
 # Copiar solo lo necesario desde builder
 COPY --from=builder /app/package*.json ./
