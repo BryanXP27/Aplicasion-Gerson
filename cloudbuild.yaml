@@ -1,58 +1,43 @@
 # ============================================================================
 # GOOGLE CLOUD BUILD - Despliegue de Pollería Gerson en Cloud Run
 # ============================================================================
-# Base de datos: PostgreSQL externo (NO en Google Cloud)
-
 timeout: 1200s
 
 options:
   substitutionOption: ALLOW_LOOSE
   machineType: 'N1_HIGHCPU_8'
 
-substitutions:
-  _REGION: us-central1
-  _PROJECT_ID: polleria-gerson
-  _REPO: polleria-gerson
-  _IMAGE: polleria-gerson
-  _IMAGE_TAG: latest
-
 steps:
-  # ==========================================================================
   # Paso 1: Build de la imagen Docker
-  # ==========================================================================
   - name: 'gcr.io/cloud-builders/docker'
     id: 'Docker Build'
     args: [
       'build',
-      '-t', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${_IMAGE_TAG}',
-      '-t', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${COMMIT_SHA}',
+      '-t', 'us-central1-docker.pkg.dev/polleria-gerson/polleria-gerson/polleria-gerson:latest',
+      '-t', 'us-central1-docker.pkg.dev/polleria-gerson/polleria-gerson/polleria-gerson:${COMMIT_SHA}',
       '.'
     ]
 
-  # ==========================================================================
   # Paso 2: Subir imagen a Artifact Registry
-  # ==========================================================================
   - name: 'gcr.io/cloud-builders/docker'
     id: 'Docker Push'
     args: [
       'push',
-      '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${_IMAGE_TAG}'
+      'us-central1-docker.pkg.dev/polleria-gerson/polleria-gerson/polleria-gerson:latest'
     ]
 
-  # ==========================================================================
   # Paso 3: Desplegar en Cloud Run
-  # ==========================================================================
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'Cloud Run Deploy'
     entrypoint: gcloud
     args:
       - 'run'
       - 'deploy'
-      - '${_IMAGE}'
+      - 'polleria-gerson'
       - '--image'
-      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${_IMAGE_TAG}'
+      - 'us-central1-docker.pkg.dev/polleria-gerson/polleria-gerson/polleria-gerson:latest'
       - '--region'
-      - '${_REGION}'
+      - 'us-central1'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
@@ -66,17 +51,5 @@ steps:
       - '10'
 
 images:
-  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${_IMAGE_TAG}'
-  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${COMMIT_SHA}'
-
-# ============================================================================
-# Variables de entorno que debe configurar en Cloud Run Console
-# ============================================================================
-# Después del despliegue, vaya a Cloud Run > Su servicio > Editar y agregue:
-#
-# DATABASE_URL=postgresql://usuario:password@host:5432/nombre_db?sslmode=require
-# DIRECT_DATABASE_URL=postgresql://usuario:password@host:5432/nombre_db?sslmode=require
-# JWT_SECRET=su-clave-secreta-muy-segura
-# NEXT_PUBLIC_APP_URL=https://su-servicio-a123.run.app
-# NODE_ENV=production
-# PORT=8080
+  - 'us-central1-docker.pkg.dev/polleria-gerson/polleria-gerson/polleria-gerson:latest'
+  - 'us-central1-docker.pkg.dev/polleria-gerson/polleria-gerson/polleria-gerson:${COMMIT_SHA}'
