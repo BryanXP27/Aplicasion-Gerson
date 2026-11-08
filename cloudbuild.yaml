@@ -1,7 +1,6 @@
 # ============================================================================
 # GOOGLE CLOUD BUILD - Despliegue de Pollería Gerson en Cloud Run
 # ============================================================================
-# Este archivo automatiza el build y despliegue en Google Cloud Run
 # Base de datos: PostgreSQL externo (NO en Google Cloud)
 
 timeout: 1200s
@@ -12,8 +11,9 @@ options:
 
 substitutions:
   _REGION: us-central1
-  _SERVICE_NAME: polleria-gerson
+  _PROJECT_ID: polleria-gerson
   _REPO: polleria-gerson
+  _IMAGE: polleria-gerson
   _IMAGE_TAG: latest
 
 steps:
@@ -24,8 +24,8 @@ steps:
     id: 'Docker Build'
     args: [
       'build',
-      '-t', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${_IMAGE_TAG}',
-      '-t', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${COMMIT_SHA}',
+      '-t', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${_IMAGE_TAG}',
+      '-t', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${COMMIT_SHA}',
       '.'
     ]
 
@@ -36,7 +36,7 @@ steps:
     id: 'Docker Push'
     args: [
       'push',
-      '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+      '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${_IMAGE_TAG}'
     ]
 
   # ==========================================================================
@@ -48,9 +48,9 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - '${_SERVICE_NAME}'
+      - '${_IMAGE}'
       - '--image'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+      - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${_IMAGE_TAG}'
       - '--region'
       - '${_REGION}'
       - '--platform'
@@ -64,12 +64,10 @@ steps:
       - '1'
       - '--max-instances'
       - '10'
-      - '--set-env-vars'
-      - 'NODE_ENV=production,PORT=8080'
 
 images:
-  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${_IMAGE_TAG}'
-  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${COMMIT_SHA}'
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${_IMAGE_TAG}'
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:${COMMIT_SHA}'
 
 # ============================================================================
 # Variables de entorno que debe configurar en Cloud Run Console
