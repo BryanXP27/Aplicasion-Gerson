@@ -1,0 +1,27 @@
+# Archivos y directorios a excluir del despliegue en Google Cloud
+.git/
+.gitignore
+.github/
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+*.log
+.env
+.env.local
+.env.development
+.env.production
+.env.example
+docker-compose*.yml
+Dockerfile*
+cloudbuild.yaml
+.gcloudignore
+README.md
+monitoring/
+k8s/
+jenkins*
+scripts/
+docs/
+*.md

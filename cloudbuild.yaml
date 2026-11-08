@@ -1,0 +1,84 @@
+# ============================================================================
+# GOOGLE CLOUD BUILD - Despliegue de Pollería Gerson en Cloud Run
+# ============================================================================
+# Este archivo automatiza el build y despliegue en Google Cloud Run
+# Base de datos: PostgreSQL externo (NO en Google Cloud)
+
+timeout: 1200s
+
+options:
+  substitutionOption: ALLOW_LOOSE
+  machineType: 'N1_HIGHCPU_8'
+
+substitutions:
+  _REGION: us-central1
+  _SERVICE_NAME: polleria-gerson
+  _REPO: polleria-gerson
+  _IMAGE_TAG: latest
+
+steps:
+  # ==========================================================================
+  # Paso 1: Build de la imagen Docker
+  # ==========================================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Docker Build'
+    args: [
+      'build',
+      '-t', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${_IMAGE_TAG}',
+      '-t', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${COMMIT_SHA}',
+      '.'
+    ]
+
+  # ==========================================================================
+  # Paso 2: Subir imagen a Artifact Registry
+  # ==========================================================================
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Docker Push'
+    args: [
+      'push',
+      '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+    ]
+
+  # ==========================================================================
+  # Paso 3: Desplegar en Cloud Run
+  # ==========================================================================
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Cloud Run Deploy'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,PORT=8080'
+
+images:
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+  - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:${COMMIT_SHA}'
+
+# ============================================================================
+# Variables de entorno que debe configurar en Cloud Run Console
+# ============================================================================
+# Después del despliegue, vaya a Cloud Run > Su servicio > Editar y agregue:
+#
+# DATABASE_URL=postgresql://usuario:password@host:5432/nombre_db?sslmode=require
+# DIRECT_DATABASE_URL=postgresql://usuario:password@host:5432/nombre_db?sslmode=require
+# JWT_SECRET=su-clave-secreta-muy-segura
+# NEXT_PUBLIC_APP_URL=https://su-servicio-a123.run.app
+# NODE_ENV=production
+# PORT=8080

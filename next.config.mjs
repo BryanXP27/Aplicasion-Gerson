@@ -1,3 +1,5 @@
+import path from 'path';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -14,13 +16,12 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   compress: true,
   poweredByHeader: false,
-  // NOTA: swcMinify fue removido en Next.js 16 (minificación es automática)
-  // Antes: swcMinify: true,
-  
-  // Output optimizado para Next.js 16
-  // Nota: 'standalone' es para Docker/self-hosted; se omite para Vercel
-  // output: 'standalone',
-  
+  // Output optimizado para Docker/Google Cloud Run
+  output: 'standalone',
+
+  // Configuración para que el output standalone funcione correctamente en contenedores
+  outputFileTracingRoot: path.join(__dirname, '../'),
+
   // Configuración de encabezados para reemplazar el middleware obsoleto
   async headers() {
     return [

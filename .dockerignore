@@ -6,9 +6,11 @@ dist
 coverage
 *.log
 .env
-.env.*
+.env.local
+.env.development
+.env.production
+.env.example
 .git
 .gitignore
-Dockerfile*
-docker-compose*.yml
 README.md
+docker-compose*.yml
